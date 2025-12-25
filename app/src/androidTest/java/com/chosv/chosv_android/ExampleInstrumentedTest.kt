@@ -1,4 +1,4 @@
-package com.example.chosv_android
+package com.chosv.chosv_android
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

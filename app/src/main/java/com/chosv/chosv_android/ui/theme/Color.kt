@@ -1,4 +1,4 @@
-package com.example.chosv_android.ui.theme
+package com.chosv.chosv_android.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

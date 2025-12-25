@@ -1,4 +1,4 @@
-package com.example.chosv_android
+package com.chosv.chosv_android
 
 import org.junit.Test
 
