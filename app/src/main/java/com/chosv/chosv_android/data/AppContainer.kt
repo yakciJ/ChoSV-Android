@@ -3,8 +3,11 @@ package com.chosv.chosv_android.data
 import android.content.Context
 import com.chosv.chosv_android.data.interceptor.AuthInterceptor
 import com.chosv.chosv_android.data.network.AuthApiService
+import com.chosv.chosv_android.data.network.ProductApiService
 import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
+import com.chosv.chosv_android.data.repository.ProductRepository
+import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
 import com.chosv.chosv_android.preferences.TokenPreferences
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
@@ -21,6 +24,7 @@ object EnvVariable {
 interface AppContainer {
     val tokenPreferences: TokenPreferences
     val authRepository: AuthRepository
+    val productRepository : ProductRepository
 }
 
 class DefaultAppContainer(
@@ -75,6 +79,14 @@ class DefaultAppContainer(
 
     override val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(authApiService, tokenPreferences)
+    }
+
+    private val productApiService: ProductApiService by lazy {
+        retrofit.create(ProductApiService::class.java)
+    }
+
+    override val productRepository: ProductRepository by lazy {
+        ProductRepositoryImpl(productApiService)
     }
 
 }

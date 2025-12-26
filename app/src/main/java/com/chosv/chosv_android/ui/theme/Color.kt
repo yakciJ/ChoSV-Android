@@ -2,6 +2,11 @@ package com.chosv.chosv_android.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+
+val Blue500 = Color(0xFF3B82F6)
+
+val Blue100 = Color(0xFFDBEAFE)
+
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
 val Pink80 = Color(0xFFEFB8C8)
