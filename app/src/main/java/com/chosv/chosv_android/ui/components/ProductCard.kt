@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,8 +40,6 @@ import com.chosv.chosv_android.convertBaseUrl
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 
-
-
 @Composable
 fun ProductCard(
     product: Product,
@@ -54,7 +53,6 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            // Box chứa ảnh sản phẩm và icon yêu thích
             Box {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current).data(convertBaseUrl(product.firstImageUrl))
@@ -66,7 +64,6 @@ fun ProductCard(
                     contentScale = ContentScale.Crop
                 )
 
-                // Nền tròn xám trong suốt cho icon
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -89,44 +86,53 @@ fun ProductCard(
                 }
             }
 
-            // Cột chứa thông tin chữ
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Tên sản phẩm
                 Text(
                     text = product.productName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
+                    minLines = 2, // --- THÊM DÒNG NÀY ---
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Giá sản phẩm
                 Text(
-                    // --- THAY ĐỔI Ở ĐÂY ---
                     text = formatCurrency(product.price),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary // Màu primary cho giá
+                    color = MaterialTheme.colorScheme.primary
                 )
 
-                // Hàng chứa thông tin người bán
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context = LocalContext.current).data(convertBaseUrl(product.sellerAvatar))
-                            .crossfade(true).build(),
-                        contentDescription = "Seller Avatar",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                    // --- SỬA Ở ĐÂY: Kiểm tra isNotEmpty() thay vì != null ---
+                    if (product.sellerAvatar.isNotEmpty()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context = LocalContext.current).data(convertBaseUrl(product.sellerAvatar))
+                                .crossfade(true).build(),
+                            contentDescription = "Seller Avatar",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Default Avatar",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray.copy(alpha = 0.5f))
+                                .padding(4.dp)
+                        )
+                    }
                     Text(
                         text = product.sellerName,
                         style = MaterialTheme.typography.bodyMedium,
@@ -138,21 +144,20 @@ fun ProductCard(
     }
 }
 
-// --- KHỐI CODE PREVIEW (giữ nguyên) ---
 @Preview(showBackground = true, widthDp = 200)
 @Composable
 fun ProductCardPreview() {
-    // Tạo một sản phẩm mẫu để hiển thị trong preview
     val sampleProduct = Product(
         productId = 1,
         productName = "Macbook Pro M3 16GB 512GB siêu mới, siêu lướt",
-        price = 35000000.0, // <-- SỬA LẠI THÀNH DOUBLE
+        price = 35000000.0,
         status = "Approved",
-        firstImageUrl = "", // Để trống, preview sẽ hiển thị placeholder
+        firstImageUrl = "",
         createdDate = "2025-12-25T10:00:00Z",
         sellerName = "jickay",
         sellerFullName = "J1ckay",
-        sellerAvatar = "", // Để trống, preview sẽ hiển thị placeholder
+        // --- SỬA Ở ĐÂY: Gán chuỗi rỗng "" thay vì null ---
+        sellerAvatar = "",
         isFavorited = true,
         favoriteCount = 99,
         categories = listOf(Category(1, "", "Đồ điện tử"))

@@ -24,7 +24,7 @@ data class ProductDetail(
     val sellerAddress: String,
     val sellerPhone: String,
     val productDescription: String,
-    val price: Long,
+    val price: Double, // Sửa từ Long thành Double
     val status: String,
     val createdDate: String,
     val sellerFullName: String,

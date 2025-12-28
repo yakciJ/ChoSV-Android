@@ -40,7 +40,10 @@ fun HomeScreen(
 
     // Khởi tạo ViewModel và truyền vào factory đã tạo ở trên
     val viewModel: HomeViewModel = viewModel(
-        factory = HomeViewModel.provideFactory(application.container.productRepository)
+        factory = HomeViewModel.provideFactory(
+            productRepository = application.container.productRepository,
+            favoriteRepository = application.container.favoriteRepository
+        )
     )
     val uiState by viewModel.uiState.collectAsState()
 
@@ -80,7 +83,9 @@ fun HomeScreen(
                     ProductCard(
                         product = product,
                         onCardClick = { onProductClick(product.productId) },
-                        onFavoriteClick = { /* TODO: Xử lý sự kiện yêu thích */ }
+                        onFavoriteClick = {
+                            viewModel.toggleFavorite(product.productId, product.isFavorited)
+                        }
                     )
                 }
             }
@@ -97,7 +102,9 @@ fun HomeScreen(
                     ProductCard(
                         product = product,
                         onCardClick = { onProductClick(product.productId) },
-                        onFavoriteClick = { /* TODO: XÃử lý sự kiện yêu thích */ }
+                        onFavoriteClick = {
+                            viewModel.toggleFavorite(product.productId, product.isFavorited)
+                        }
                     )
                 }
             }

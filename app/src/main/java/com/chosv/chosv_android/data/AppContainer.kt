@@ -3,9 +3,12 @@ package com.chosv.chosv_android.data
 import android.content.Context
 import com.chosv.chosv_android.data.interceptor.AuthInterceptor
 import com.chosv.chosv_android.data.network.AuthApiService
+import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ProductApiService
 import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
+import com.chosv.chosv_android.data.repository.FavoriteRepository
+import com.chosv.chosv_android.data.repository.FavoriteRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
 import com.chosv.chosv_android.preferences.TokenPreferences
@@ -25,6 +28,7 @@ interface AppContainer {
     val tokenPreferences: TokenPreferences
     val authRepository: AuthRepository
     val productRepository : ProductRepository
+    val favoriteRepository: FavoriteRepository
 }
 
 class DefaultAppContainer(
@@ -88,5 +92,14 @@ class DefaultAppContainer(
     override val productRepository: ProductRepository by lazy {
         ProductRepositoryImpl(productApiService)
     }
+
+    private val favoriteApiService: FavoriteApiService by lazy {
+        retrofit.create(FavoriteApiService::class.java)
+    }
+
+    override val favoriteRepository: FavoriteRepository by lazy {
+        FavoriteRepositoryImpl(favoriteApiService)
+    }
+
 
 }
