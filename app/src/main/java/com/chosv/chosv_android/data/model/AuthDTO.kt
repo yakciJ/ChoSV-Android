@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class LoginRequest(
     val userName: String,
-    val password: String
+    val password: String,
+    val rememberMe: Boolean = true
 )
 
 @Serializable
@@ -24,7 +25,7 @@ data class AuthResponse(
     val avatarImage: String,
     val role: String,
     val accessToken: String,
-    val refreshToken: String
+    val refreshToken: String = "" // Có thể rỗng vì BE gửi qua cookie
 )
 
 @Serializable
@@ -34,7 +35,13 @@ data class RefreshTokenRequest(
 
 @Serializable
 data class UserProfile(
-    val id: String,
+    val userId: String,
     val userName: String,
-    val email: String
+    val fullName: String,
+    val email: String,
+    val phoneNumber: String = "",
+    val avatarImage: String = "",
+    val bio: String = "",
+    val address: String = "",
+    val createdAt: String = ""
 )

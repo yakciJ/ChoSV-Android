@@ -2,6 +2,7 @@ package com.chosv.chosv_android.data
 
 import android.content.Context
 import com.chosv.chosv_android.data.interceptor.AuthInterceptor
+import com.chosv.chosv_android.data.interceptor.TokenAuthenticator
 import com.chosv.chosv_android.data.network.AuthApiService
 import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ProductApiService
@@ -11,12 +12,17 @@ import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.FavoriteRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
+import com.chosv.chosv_android.data.repository.UserRepository
+import com.chosv.chosv_android.data.repository.UserRepositoryImpl
 import com.chosv.chosv_android.preferences.TokenPreferences
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
+import okhttp3.JavaNetCookieJar
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
+import java.net.CookieManager
+import java.net.CookiePolicy
 import java.util.concurrent.TimeUnit
 
 object EnvVariable {
@@ -27,7 +33,8 @@ object EnvVariable {
 interface AppContainer {
     val tokenPreferences: TokenPreferences
     val authRepository: AuthRepository
-    val productRepository : ProductRepository
+    val userRepository: UserRepository
+    val productRepository: ProductRepository
     val favoriteRepository: FavoriteRepository
 }
 
@@ -40,42 +47,64 @@ class DefaultAppContainer(
 
     private val json = Json {
         ignoreUnknownKeys = true
+        isLenient = true // Cho phép parse string trực tiếp
     }
+
+    // CookieManager để lưu và gửi cookies (bao gồm refreshToken)
+    private val cookieManager = CookieManager().apply {
+        setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+    }
+
+    private val cookieJar = JavaNetCookieJar(cookieManager)
 
     private val authInterceptor by lazy {
         AuthInterceptor(tokenPreferences)
     }
 
+    // OkHttpClient cho refresh token - có CookieJar, KHÔNG có AuthInterceptor
     private val tokenRefreshOkHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .cookieJar(cookieJar)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 
-    private val tokenRefreshRetrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(EnvVariable.BASE_URL)
-        .client(tokenRefreshOkHttpClient) // Use Alice here
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
+    private val tokenRefreshRetrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(EnvVariable.BASE_URL)
+            .client(tokenRefreshOkHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
 
     private val tokenRefreshApiService: AuthApiService by lazy {
         tokenRefreshRetrofit.create(AuthApiService::class.java)
     }
+
+    // TokenAuthenticator để tự động refresh token khi 401
+    private val tokenAuthenticator by lazy {
+        TokenAuthenticator(tokenPreferences) { tokenRefreshApiService }
+    }
+
+    // OkHttpClient chính - có CookieJar, AuthInterceptor và TokenAuthenticator
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .cookieJar(cookieJar)
             .addInterceptor(authInterceptor)
+            .authenticator(tokenAuthenticator)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 
-    // This part stays the same. It uses the updated "Bob".
-    private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(EnvVariable.BASE_URL)
-        .client(okHttpClient)
-        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-        .build()
+    private val retrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl(EnvVariable.BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
 
     private val authApiService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
@@ -83,6 +112,10 @@ class DefaultAppContainer(
 
     override val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(authApiService, tokenPreferences)
+    }
+
+    override val userRepository: UserRepository by lazy {
+        UserRepositoryImpl(authApiService, tokenPreferences)
     }
 
     private val productApiService: ProductApiService by lazy {
@@ -100,6 +133,5 @@ class DefaultAppContainer(
     override val favoriteRepository: FavoriteRepository by lazy {
         FavoriteRepositoryImpl(favoriteApiService)
     }
-
 
 }

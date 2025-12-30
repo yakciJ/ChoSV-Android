@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.chosv.chosv_android.ChoSVApplication
@@ -57,17 +58,20 @@ import com.chosv.chosv_android.formatCurrency
 import com.chosv.chosv_android.formatDateString
 import com.chosv.chosv_android.ui.components.ProductCard
 import com.chosv.chosv_android.ui.theme.ChoSVAndroidTheme
-
+import androidx.navigation.NavHostController
+// cái ảnh to phải full ảnh, và ấn vào phải kiểu phóng to cái ảnh ra để xem rõ hơn..
 @Composable
 fun ProductScreen(
     productId: Int,
-    modifier: Modifier = Modifier,
-    onProductClick: (Int) -> Unit
+    onBack: () -> Unit,
+    navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
     val application = LocalContext.current.applicationContext as ChoSVApplication
     val viewModel: ProductViewModel = viewModel(
         factory = ProductViewModel.provideFactory(
             productRepository = application.container.productRepository,
+            favoriteRepository = application.container.favoriteRepository,
             productId = productId
         )
     )
@@ -89,7 +93,11 @@ fun ProductScreen(
                 newestProducts = uiState.newestProducts,
                 popularProducts = uiState.popularProducts,
                 modifier = modifier,
-                onProductClick = onProductClick
+                onBackClick = onBack,
+                onProductClick = { clickedProductId -> navController.navigate("products/$clickedProductId") },
+                onFavoriteClick = { clickedProductId, isFavorited ->
+                    viewModel.toggleFavorite(clickedProductId, isFavorited)
+                }
             )
         }
     }
@@ -101,6 +109,8 @@ fun ProductDetailContent(
     newestProducts: List<Product>,
     popularProducts: List<Product>,
     onProductClick: (Int) -> Unit,
+    onBackClick: () -> Unit,
+    onFavoriteClick: (Int, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImage by remember { mutableStateOf(product.productImages.firstOrNull()) }
@@ -110,12 +120,26 @@ fun ProductDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = product.productName,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
+        // Header với nút quay lại và tiêu đề
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Quay lại"
+                )
+            }
+            Text(
+                text = product.productName,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f).padding(end = 16.dp)
+            )
+        }
 
         Image(
             painter = rememberAsyncImagePainter(model = convertBaseUrl(selectedImage)),
@@ -235,8 +259,18 @@ fun ProductDetailContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // --- Related Products ---
-        ProductCarousel(title = "Sản phẩm nổi bật", products = popularProducts, onProductClick = onProductClick)
-        ProductCarousel(title = "Sản phẩm mới nhất", products = newestProducts, onProductClick = onProductClick)
+        ProductCarousel(
+            title = "Sản phẩm nổi bật",
+            products = popularProducts,
+            onProductClick = onProductClick,
+            onFavoriteClick = onFavoriteClick
+        )
+        ProductCarousel(
+            title = "Sản phẩm mới nhất",
+            products = newestProducts,
+            onProductClick = onProductClick,
+            onFavoriteClick = onFavoriteClick
+        )
 
     }
 }
@@ -251,7 +285,12 @@ fun InfoRow(icon: ImageVector, text: String) {
 }
 
 @Composable
-fun ProductCarousel(title: String, products: List<Product>, onProductClick: (Int) -> Unit) {
+fun ProductCarousel(
+    title: String,
+    products: List<Product>,
+    onProductClick: (Int) -> Unit,
+    onFavoriteClick: (Int, Boolean) -> Unit
+) {
     Column {
         Text(
             text = title,
@@ -263,12 +302,12 @@ fun ProductCarousel(title: String, products: List<Product>, onProductClick: (Int
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(products) {
+            items(products) { product ->
                 ProductCard(
-                    product = it, 
-                    onCardClick = { onProductClick(it.productId) }, 
-                    onFavoriteClick = {}, // Simplified for now
-                    modifier = Modifier.width(180.dp) // Set fixed width
+                    product = product,
+                    onCardClick = { onProductClick(product.productId) },
+                    onFavoriteClick = { onFavoriteClick(product.productId, product.isFavorited) },
+                    modifier = Modifier.width(180.dp)
                 )
             }
         }
@@ -306,7 +345,9 @@ fun ProductScreenPreview() {
             ),
             newestProducts = emptyList(),
             popularProducts = emptyList(),
-            onProductClick = {}
+            onProductClick = {},
+            onBackClick = {},
+            onFavoriteClick = { _, _ -> }
         )
     }
 }

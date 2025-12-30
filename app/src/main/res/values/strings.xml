@@ -1,6 +1,20 @@
 <resources>
     <string name="app_name">Chợ Sinh Viên</string>
+    <string name="app_display_name">Chợ Sinh Viên</string>
     <string name="login">Đăng nhập</string>
     <string name="signup">Đăng ký</string>
     <string name="home">Trang chủ</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="create_post">Đăng bài</string>
+    <string name="msg">Tin nhắn</string>
+    <string name="back">Quay lại</string>
+    <string name="profile_detail">Hồ sơ cá nhân</string>
+    <string name="home_search_label">Tìm kiếm sản phẩm</string>
+    <string name="product_detail">Chi tiết sản phẩm</string>
+    <string name="categories">Danh mục</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="notifications">Thông báo</string>
+    <string name="browsing_history">Lịch sử duyệt</string>
+    <string name="management">Quản lý</string>
 </resources>

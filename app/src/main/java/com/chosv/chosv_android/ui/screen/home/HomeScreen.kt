@@ -29,11 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chosv.chosv_android.ChoSVApplication
 import com.chosv.chosv_android.ui.components.ProductCard
+import androidx.navigation.NavHostController
 
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier,
-    onProductClick: (Int) -> Unit
+    navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
     // Lấy Application context để truy cập vào AppContainer
     val application = LocalContext.current.applicationContext as ChoSVApplication
@@ -82,7 +83,7 @@ fun HomeScreen(
                 items(uiState.popularProducts) { product ->
                     ProductCard(
                         product = product,
-                        onCardClick = { onProductClick(product.productId) },
+                        onCardClick = { navController.navigate("products/${product.productId}") },
                         onFavoriteClick = {
                             viewModel.toggleFavorite(product.productId, product.isFavorited)
                         }
@@ -101,7 +102,7 @@ fun HomeScreen(
                 items(uiState.newestProducts) { product ->
                     ProductCard(
                         product = product,
-                        onCardClick = { onProductClick(product.productId) },
+                        onCardClick = { navController.navigate("products/${product.productId}") },
                         onFavoriteClick = {
                             viewModel.toggleFavorite(product.productId, product.isFavorited)
                         }

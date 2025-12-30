@@ -1,10 +1,6 @@
 package com.chosv.chosv_android.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -12,22 +8,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.chosv.chosv_android.data.model.Screen
-import com.chosv.chosv_android.ui.components.MainLayout
 import com.chosv.chosv_android.ui.screen.auth.LoginScreen
+import com.chosv.chosv_android.ui.screen.favorite.FavoriteScreen
 import com.chosv.chosv_android.ui.screen.home.HomeScreen
 import com.chosv.chosv_android.ui.screen.management.CreatePostScreen
 import com.chosv.chosv_android.ui.screen.management.ManagementScreen
 import com.chosv.chosv_android.ui.screen.messages.MessagesScreen
+import com.chosv.chosv_android.ui.screen.product.ProductScreen
 import com.chosv.chosv_android.ui.screen.profile.ProfileScreen
 
 @Composable
-fun AppNavHost(navController: NavHostController, startDestination: String) {
-    NavHost(navController, startDestination = startDestination) {
+fun AppNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    startDestination: String = Screen.Home.route
+) {
+    NavHost(navController, startDestination = startDestination, modifier = modifier) {
 
-        // --- Màn hình không có layout chính ---
+        // --- Màn hình Login ---
         composable(Screen.Login.route) {
             LoginScreen(
-                onSignupClick = { /* ... */ },
+                onSignupClick = {
+                    navController.navigate(Screen.Signup.route)
+                },
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
@@ -36,59 +39,43 @@ fun AppNavHost(navController: NavHostController, startDestination: String) {
             )
         }
 
-        // --- Các màn hình CÓ layout chính (dùng MainLayout) ---
+        // --- Các màn hình chính (bottom nav) ---
         composable(Screen.Home.route) {
-            MainLayout(navController = navController) { modifier ->
-                HomeScreen(
-                    modifier = modifier,
-                    // --- SỬA Ở ĐÂY ---
-                    // Truyền vào hành động điều hướng khi một sản phẩm được click
-                    onProductClick = { productId ->
-                        navController.navigate(Screen.ProductDetail.createRoute(productId))
-                    }
-                )
-            }
+            HomeScreen(navController = navController)
         }
 
         composable(Screen.Management.route) {
-            MainLayout(navController = navController) { modifier ->
-                ManagementScreen(modifier = modifier)
-            }
+            ManagementScreen(navController = navController)
         }
 
         composable(Screen.CreatePost.route) {
-            MainLayout(navController = navController) { modifier ->
-                CreatePostScreen(modifier = modifier)
-            }
+            CreatePostScreen(navController = navController)
         }
 
         composable(Screen.Messages.route) {
-            MainLayout(navController = navController) { modifier ->
-                MessagesScreen(modifier = modifier)
-            }
+            MessagesScreen(navController = navController)
         }
 
         composable(Screen.Profile.route) {
-            MainLayout(navController = navController) { modifier ->
-                ProfileScreen(modifier = modifier)
-            }
+            ProfileScreen(navController = navController)
         }
 
-        // --- THÊM MÀN HÌNH CHI TIẾT SẢN PHẨM ---
-        composable(
-            route = Screen.ProductDetail.route,
-            arguments = listOf(navArgument("productId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getInt("productId") ?: return@composable
+        // --- Màn hình sản phẩm yêu thích ---
+        composable(Screen.Favorites.route) {
+            FavoriteScreen(navController = navController)
+        }
 
-            // TODO: Tạo ProductDetailScreen(productId = productId) thật
-            // Dưới đây chỉ là một màn hình giả lập
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Màn hình chi tiết của sản phẩm ID: $productId")
-            }
+        // --- Màn hình chi tiết sản phẩm ---
+        composable(
+            route = Screen.Product.route,
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("id") ?: return@composable
+            ProductScreen(
+                productId = productId,
+                onBack = { navController.popBackStack() },
+                navController = navController
+            )
         }
     }
 }

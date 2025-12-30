@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.chosv.chosv_android.data.model.Product
 import com.chosv.chosv_android.data.model.ProductDetail
+import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,6 +22,7 @@ data class ProductUiState(
 
 class ProductViewModel(
     private val productRepository: ProductRepository,
+    private val favoriteRepository: FavoriteRepository,
     private val productId: Int
 ) : ViewModel() {
 
@@ -54,14 +56,52 @@ class ProductViewModel(
         }
     }
 
+    fun toggleFavorite(productId: Int, isCurrentlyFavorited: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (isCurrentlyFavorited) {
+                    favoriteRepository.deleteFavorite(productId.toString())
+                } else {
+                    favoriteRepository.addFavorite(productId.toString())
+                }
+                // Sau khi API thành công, cập nhật lại trạng thái isFavorited của sản phẩm
+                updateProductFavoriteState(productId)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Lỗi thao tác: ${e.message}") }
+            }
+        }
+    }
+
+    // Hàm helper để cập nhật trạng thái trong danh sách sản phẩm
+    private fun updateProductFavoriteState(productId: Int) {
+        _uiState.update { currentState ->
+            val updatedPopular = currentState.popularProducts.map { product ->
+                if (product.productId == productId) {
+                    product.copy(isFavorited = !product.isFavorited)
+                } else {
+                    product
+                }
+            }
+            val updatedNewest = currentState.newestProducts.map { product ->
+                if (product.productId == productId) {
+                    product.copy(isFavorited = !product.isFavorited)
+                } else {
+                    product
+                }
+            }
+            currentState.copy(popularProducts = updatedPopular, newestProducts = updatedNewest)
+        }
+    }
+
     companion object {
         fun provideFactory(
             productRepository: ProductRepository,
+            favoriteRepository: FavoriteRepository,
             productId: Int
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProductViewModel(productRepository, productId) as T
+                return ProductViewModel(productRepository, favoriteRepository, productId) as T
             }
         }
     }

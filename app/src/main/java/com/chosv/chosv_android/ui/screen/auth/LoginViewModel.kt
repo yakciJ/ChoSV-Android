@@ -11,12 +11,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.chosv.chosv_android.ChoSVApplication
 import kotlinx.coroutines.launch
 import com.chosv.chosv_android.data.repository.AuthRepository
-import com.chosv.chosv_android.preferences.TokenPreferences
 import com.chosv.chosv_android.data.model.*
 
 class LoginViewModel(
-    private val authRepository: AuthRepository,
-    private val tokenPreferences: TokenPreferences
+    private val authRepository: AuthRepository
 ) : ViewModel() {
     var userName = mutableStateOf("")
         private set
@@ -25,6 +23,9 @@ class LoginViewModel(
         private set
 
     var passwordVisible = mutableStateOf(false)
+        private set
+
+    var rememberMe = mutableStateOf(true)
         private set
 
     fun onUserNameChanged(newValue: String) {
@@ -39,33 +40,39 @@ class LoginViewModel(
         passwordVisible.value = !passwordVisible.value
     }
 
+    fun toggleRememberMe() {
+        rememberMe.value = !rememberMe.value
+    }
+
     var loginSuccess = mutableStateOf(false)
     var loginError = mutableStateOf<String?>(null)
-
+    var isLoading = mutableStateOf(false)
 
     fun onLoginClick() {
-        // 1. Set state về null / loading (nếu muốn)
         loginError.value = null
-        viewModelScope.launch {
-            try {
-                // 2. Gọi API login và nhận AuthResponse
-                val response: AuthResponse = authRepository.login(
-                    LoginRequest(
-                        userName = userName.value,
-                        password = password.value
-                    )
-                )
-                // 3. Lưu token vào DataStore qua TokenPreferences
-                tokenPreferences.updateAccessToken(response.accessToken)
-                Log.d("LoginViewModel", "Login thành công, token: ${response.accessToken}")
+        isLoading.value = true
 
-                // 4. Đánh dấu login thành công
-                loginSuccess.value = true
-            } catch (e: Exception) {
-                Log.e("LoginViewModel", "Login thất bại: ${e.localizedMessage}")
-                // 5. Nếu có lỗi (mạng, 401, v.v.), set loginError
-                loginError.value = "Sai tài khoản hoặc mật khẩu"
-            }
+        viewModelScope.launch {
+            val result = authRepository.login(
+                LoginRequest(
+                    userName = userName.value,
+                    password = password.value,
+                    rememberMe = rememberMe.value
+                )
+            )
+
+            isLoading.value = false
+
+            result.fold(
+                onSuccess = { response ->
+                    Log.d("LoginViewModel", "Login thành công, token: ${response.accessToken}")
+                    loginSuccess.value = true
+                },
+                onFailure = { e ->
+                    Log.e("LoginViewModel", "Login thất bại: ${e.localizedMessage}")
+                    loginError.value = "Sai tài khoản hoặc mật khẩu"
+                }
+            )
         }
     }
 
@@ -74,10 +81,8 @@ class LoginViewModel(
             initializer {
                 val application = (this[APPLICATION_KEY] as ChoSVApplication)
                 val authRepository = application.container.authRepository
-                val tokenPreferences = application.container.tokenPreferences
                 LoginViewModel(
-                    authRepository = authRepository,
-                    tokenPreferences = tokenPreferences
+                    authRepository = authRepository
                 )
             }
         }

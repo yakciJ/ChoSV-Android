@@ -1,7 +1,5 @@
-package com.chosv.chosv_android.ui.components
+package com.chosv.chosv_android.ui.screen.main
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalDrawerSheet
@@ -11,20 +9,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.chosv.chosv_android.ui.theme.ChoSVAndroidTheme
+import com.chosv.chosv_android.navigation.AppNavHost
+import com.chosv.chosv_android.ui.components.BottomNavigationBar
+import com.chosv.chosv_android.ui.components.MainTopAppBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainLayout(
-    navController: NavHostController,
-    content: @Composable (modifier: Modifier) -> Unit
-) {
+fun MainScreen(navController: NavHostController) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -51,28 +45,10 @@ fun MainLayout(
                 BottomNavigationBar(navController = navController)
             }
         ) { innerPadding ->
-            // Nội dung của màn hình (ví dụ: HomeScreen) sẽ được đặt ở đây
-            content(Modifier.padding(innerPadding))
+            AppNavHost(
+                navController = navController,
+                modifier = Modifier.padding(innerPadding)
+            )
         }
-    }
-}
-
-// --- KHỐI CODE PREVIEW CHO MAINLAYOUT ---
-@Preview(showSystemUi = true) // showSystemUi = true để hiển thị cả status bar, giống màn hình thật
-@Composable
-fun MainLayoutPreview() {
-    ChoSVAndroidTheme {
-        MainLayout(
-            navController = rememberNavController(),
-            content = { modifier ->
-                // Đặt một nội dung giả lập vào giữa để xem bố cục
-                Box(
-                    modifier = modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Nội dung màn hình ở đây")
-                }
-            }
-        )
     }
 }
