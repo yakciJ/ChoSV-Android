@@ -25,6 +25,17 @@ interface ProductRepository {
     suspend fun updateProduct(productId: Int, request: UpdateProductRequest): MessageResponse
     suspend fun updateProductStatus(productId: Int, status: String): MessageResponse
     suspend fun deleteProduct(productId: Int): MessageResponse
+
+    // Tìm kiếm sản phẩm
+    suspend fun searchProducts(
+        search: String,
+        categoryId: Int?,
+        minPrice: Double?,
+        maxPrice: Double?,
+        page: Int,
+        pageSize: Int,
+        sortBy: String
+    ): PaginatedResponse<Product>
 }
 
 /**
@@ -65,5 +76,25 @@ class ProductRepositoryImpl(
 
     override suspend fun deleteProduct(productId: Int): MessageResponse {
         return productApiService.deleteProduct(productId)
+    }
+
+    override suspend fun searchProducts(
+        search: String,
+        categoryId: Int?,
+        minPrice: Double?,
+        maxPrice: Double?,
+        page: Int,
+        pageSize: Int,
+        sortBy: String
+    ): PaginatedResponse<Product> {
+        return productApiService.searchProducts(
+            search = search,
+            categoryId = categoryId,
+            minPrice = minPrice,
+            maxPrice = maxPrice,
+            page = page,
+            pageSize = pageSize,
+            sortBy = sortBy
+        )
     }
 }

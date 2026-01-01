@@ -19,6 +19,7 @@ import com.chosv.chosv_android.ui.screen.management.ManagementScreen
 import com.chosv.chosv_android.ui.screen.messages.MessagesScreen
 import com.chosv.chosv_android.ui.screen.product.ProductScreen
 import com.chosv.chosv_android.ui.screen.profile.ProfileScreen
+import com.chosv.chosv_android.ui.screen.search.SearchScreen
 import java.net.URLDecoder
 
 @Composable
@@ -67,6 +68,11 @@ fun AppNavHost(
         // --- Màn hình sản phẩm yêu thích ---
         composable(Screen.Favorites.route) {
             FavoriteScreen(navController = navController)
+        }
+
+        // --- Màn hình tìm kiếm ---
+        composable(Screen.Search.route) {
+            SearchScreen(navController = navController)
         }
 
         // --- Màn hình chi tiết sản phẩm ---

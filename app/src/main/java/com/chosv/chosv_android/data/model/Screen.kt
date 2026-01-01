@@ -28,6 +28,9 @@ sealed class Screen(val route: String, val icon: ImageVector?, @StringRes val la
     data object BrowsingNewest : Screen("browsing/newest", null, R.string.browsing_newest)
     data object BrowsingPopular : Screen("browsing/popular", null, R.string.browsing_popular)
     data object BrowsingCategory : Screen("browsing/category/{categoryId}/{categoryName}", null, R.string.browsing_category)
+
+    // Search screen
+    data object Search : Screen("search", null, R.string.search)
 }
 
 val bottomNavItems = listOf(

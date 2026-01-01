@@ -21,4 +21,18 @@
     <string name="browsing_newest">Sản phẩm mới nhất</string>
     <string name="browsing_popular">Sản phẩm nổi bật</string>
     <string name="browsing_category">Danh mục</string>
+    <string name="search_results_for">Kết quả tìm kiếm cho</string>
+    <string name="search_placeholder">Nhập từ khóa tìm kiếm...</string>
+    <string name="filter">Lọc</string>
+    <string name="sort_by">Sắp xếp theo</string>
+    <string name="sort_relevance">Liên quan nhất</string>
+    <string name="sort_price_low">Giá thấp đến cao</string>
+    <string name="sort_price_high">Giá cao đến thấp</string>
+    <string name="sort_newest">Mới nhất</string>
+    <string name="min_price">Giá thấp nhất</string>
+    <string name="max_price">Giá cao nhất</string>
+    <string name="apply_filter">Áp dụng</string>
+    <string name="clear_filter">Xóa bộ lọc</string>
+    <string name="no_search_results">Không tìm thấy sản phẩm nào</string>
+    <string name="enter_search_keyword">Nhập từ khóa để tìm kiếm sản phẩm</string>
 </resources>

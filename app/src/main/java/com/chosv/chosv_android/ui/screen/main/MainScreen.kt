@@ -143,7 +143,7 @@ fun MainScreen(navController: NavHostController) {
                     onNavigationIconClick = {
                         scope.launch { drawerState.open() }
                     },
-                    onSearchActionClick = { /* TODO: Navigate to Search Screen */ }
+                    onSearchActionClick = { navController.navigate("search") }
                 )
             },
             bottomBar = {

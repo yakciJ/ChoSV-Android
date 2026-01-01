@@ -90,4 +90,25 @@ interface ProductApiService {
     suspend fun deleteProduct(
         @Path("productId") productId: Int
     ): MessageResponse
+
+    /**
+     * Tìm kiếm sản phẩm
+     * @param search: từ khóa tìm kiếm (bắt buộc)
+     * @param categoryId: lọc theo danh mục (tùy chọn)
+     * @param minPrice: giá tối thiểu (tùy chọn)
+     * @param maxPrice: giá tối đa (tùy chọn)
+     * @param page: số trang
+     * @param pageSize: số lượng mỗi trang
+     * @param sortBy: sắp xếp theo (relevance, price_high, price_low, newest)
+     */
+    @GET("api/Product/search")
+    suspend fun searchProducts(
+        @Query("search") search: String,
+        @Query("categoryId") categoryId: Int? = null,
+        @Query("minPrice") minPrice: Double? = null,
+        @Query("maxPrice") maxPrice: Double? = null,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 12,
+        @Query("sortBy") sortBy: String = "relevance"
+    ): PaginatedResponse<Product>
 }
