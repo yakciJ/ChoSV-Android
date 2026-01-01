@@ -7,9 +7,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ControlPoint
 import com.chosv.chosv_android.R
 
 sealed class Screen(val route: String, val icon: ImageVector?, @StringRes val label: Int) {
@@ -24,9 +22,14 @@ sealed class Screen(val route: String, val icon: ImageVector?, @StringRes val la
     data object Profile : Screen("profile",Icons.Filled.Person, R.string.profile)
     data object Favorites : Screen("favorites", null, R.string.favorites)
     data object Product : Screen("products/{id}", null, R.string.product_detail)
+    data object EditProduct : Screen("edit_product/{productId}", null, R.string.edit_product)
 
-
+    // Browsing screens
+    data object BrowsingNewest : Screen("browsing/newest", null, R.string.browsing_newest)
+    data object BrowsingPopular : Screen("browsing/popular", null, R.string.browsing_popular)
+    data object BrowsingCategory : Screen("browsing/category/{categoryId}/{categoryName}", null, R.string.browsing_category)
 }
+
 val bottomNavItems = listOf(
     Screen.Home, Screen.Management, Screen.CreatePost, Screen.Messages, Screen.Profile
 )

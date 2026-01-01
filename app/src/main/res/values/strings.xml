@@ -17,4 +17,8 @@
     <string name="notifications">Thông báo</string>
     <string name="browsing_history">Lịch sử duyệt</string>
     <string name="management">Quản lý</string>
+    <string name="edit_product">Chỉnh sửa sản phẩm</string>
+    <string name="browsing_newest">Sản phẩm mới nhất</string>
+    <string name="browsing_popular">Sản phẩm nổi bật</string>
+    <string name="browsing_category">Danh mục</string>
 </resources>

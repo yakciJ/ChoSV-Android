@@ -3,6 +3,43 @@ package com.chosv.chosv_android.data.model
 import kotlinx.serialization.Serializable
 
 /**
+ * DTO cho sản phẩm của người dùng hiện tại (từ /api/Product/me)
+ */
+@Serializable
+data class MyProduct(
+    val productId: Int,
+    val productName: String,
+    val productPrice: Double,
+    val productDescription: String,
+    val status: String,
+    val sellerId: String,
+    val sellerName: String,
+    val createdDate: String,
+    val categories: List<Category>,
+    val firstImageUrl: String
+)
+
+/**
+ * DTO cho request cập nhật sản phẩm
+ */
+@Serializable
+data class UpdateProductRequest(
+    val productName: String,
+    val productDescription: String,
+    val price: Long,
+    val categoryIds: List<Int>,
+    val imageUrls: List<String>
+)
+
+/**
+ * Response chung cho các thao tác (update, delete, ...)
+ */
+@Serializable
+data class MessageResponse(
+    val message: String
+)
+
+/**
  * DTO cho một Category
  */
 @Serializable

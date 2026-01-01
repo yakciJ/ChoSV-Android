@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chosv.chosv_android.ChoSVApplication
+import com.chosv.chosv_android.data.model.Screen
 import com.chosv.chosv_android.ui.components.ProductCard
 import androidx.navigation.NavHostController
 
@@ -77,7 +78,9 @@ fun HomeScreen(
                 item(span = { GridItemSpan(maxLineSpan) }) { // maxLineSpan để chiếm hết chiều rộng
                     SectionHeader(
                         title = "Sản phẩm nổi bật",
-                        onSeeMoreClick = { /* TODO: Điều hướng đến trang xem tất cả sp nổi bật */ }
+                        onSeeMoreClick = {
+                            navController.navigate(Screen.BrowsingPopular.route)
+                        }
                     )
                 }
                 items(uiState.popularProducts) { product ->
@@ -96,7 +99,9 @@ fun HomeScreen(
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeader(
                         title = "Khám phá sản phẩm mới",
-                        onSeeMoreClick = { /* TODO: Điều hướng đến trang xem tất cả sp mới */ }
+                        onSeeMoreClick = {
+                            navController.navigate(Screen.BrowsingNewest.route)
+                        }
                     )
                 }
                 items(uiState.newestProducts) { product ->

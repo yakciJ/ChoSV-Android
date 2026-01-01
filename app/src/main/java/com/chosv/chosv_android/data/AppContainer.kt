@@ -4,12 +4,18 @@ import android.content.Context
 import com.chosv.chosv_android.data.interceptor.AuthInterceptor
 import com.chosv.chosv_android.data.interceptor.TokenAuthenticator
 import com.chosv.chosv_android.data.network.AuthApiService
+import com.chosv.chosv_android.data.network.CategoryApiService
 import com.chosv.chosv_android.data.network.FavoriteApiService
+import com.chosv.chosv_android.data.network.ImageApiService
 import com.chosv.chosv_android.data.network.ProductApiService
 import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
+import com.chosv.chosv_android.data.repository.CategoryRepository
+import com.chosv.chosv_android.data.repository.CategoryRepositoryImpl
 import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.FavoriteRepositoryImpl
+import com.chosv.chosv_android.data.repository.ImageRepository
+import com.chosv.chosv_android.data.repository.ImageRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserRepository
@@ -36,6 +42,8 @@ interface AppContainer {
     val userRepository: UserRepository
     val productRepository: ProductRepository
     val favoriteRepository: FavoriteRepository
+    val imageRepository: ImageRepository
+    val categoryRepository: CategoryRepository
 }
 
 class DefaultAppContainer(
@@ -132,6 +140,22 @@ class DefaultAppContainer(
 
     override val favoriteRepository: FavoriteRepository by lazy {
         FavoriteRepositoryImpl(favoriteApiService)
+    }
+
+    private val imageApiService: ImageApiService by lazy {
+        retrofit.create(ImageApiService::class.java)
+    }
+
+    override val imageRepository: ImageRepository by lazy {
+        ImageRepositoryImpl(imageApiService, context)
+    }
+
+    private val categoryApiService: CategoryApiService by lazy {
+        retrofit.create(CategoryApiService::class.java)
+    }
+
+    override val categoryRepository: CategoryRepository by lazy {
+        CategoryRepositoryImpl(categoryApiService)
     }
 
 }
