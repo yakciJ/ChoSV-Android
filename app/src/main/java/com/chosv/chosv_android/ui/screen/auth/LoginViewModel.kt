@@ -11,10 +11,12 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.chosv.chosv_android.ChoSVApplication
 import kotlinx.coroutines.launch
 import com.chosv.chosv_android.data.repository.AuthRepository
+import com.chosv.chosv_android.data.repository.UserRepository
 import com.chosv.chosv_android.data.model.*
 
 class LoginViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     var userName = mutableStateOf("")
         private set
@@ -26,6 +28,18 @@ class LoginViewModel(
         private set
 
     var rememberMe = mutableStateOf(true)
+        private set
+
+    // Forgot password states
+    var showForgotPasswordDialog = mutableStateOf(false)
+        private set
+    var forgotPasswordEmail = mutableStateOf("")
+        private set
+    var isSendingForgotPassword = mutableStateOf(false)
+        private set
+    var forgotPasswordMessage = mutableStateOf<String?>(null)
+        private set
+    var forgotPasswordError = mutableStateOf<String?>(null)
         private set
 
     fun onUserNameChanged(newValue: String) {
@@ -42,6 +56,46 @@ class LoginViewModel(
 
     fun toggleRememberMe() {
         rememberMe.value = !rememberMe.value
+    }
+
+    // Forgot password functions
+    fun showForgotPasswordDialog() {
+        forgotPasswordEmail.value = ""
+        forgotPasswordMessage.value = null
+        forgotPasswordError.value = null
+        showForgotPasswordDialog.value = true
+    }
+
+    fun hideForgotPasswordDialog() {
+        showForgotPasswordDialog.value = false
+    }
+
+    fun onForgotPasswordEmailChanged(newValue: String) {
+        forgotPasswordEmail.value = newValue
+    }
+
+    fun onSendForgotPassword() {
+        if (forgotPasswordEmail.value.isBlank()) {
+            forgotPasswordError.value = "Vui lòng nhập email"
+            return
+        }
+
+        isSendingForgotPassword.value = true
+        forgotPasswordError.value = null
+        forgotPasswordMessage.value = null
+
+        viewModelScope.launch {
+            userRepository.forgotPassword(forgotPasswordEmail.value).fold(
+                onSuccess = { message ->
+                    forgotPasswordMessage.value = message
+                    isSendingForgotPassword.value = false
+                },
+                onFailure = { e ->
+                    forgotPasswordError.value = e.message
+                    isSendingForgotPassword.value = false
+                }
+            )
+        }
     }
 
     var loginSuccess = mutableStateOf(false)
@@ -81,8 +135,10 @@ class LoginViewModel(
             initializer {
                 val application = (this[APPLICATION_KEY] as ChoSVApplication)
                 val authRepository = application.container.authRepository
+                val userRepository = application.container.userRepository
                 LoginViewModel(
-                    authRepository = authRepository
+                    authRepository = authRepository,
+                    userRepository = userRepository
                 )
             }
         }

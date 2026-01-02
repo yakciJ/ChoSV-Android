@@ -45,3 +45,18 @@ data class UserProfile(
     val address: String? = null,
     val createdAt: String? = null
 )
+
+@Serializable
+data class UpdateProfileRequest(
+    val fullName: String,
+    val bio: String,
+    val address: String,
+    val phoneNumber: String
+)
+
+@Serializable
+data class ChangePasswordRequest(
+    val oldPassword: String,
+    val newPassword: String,
+    val confirmPassword: String
+)

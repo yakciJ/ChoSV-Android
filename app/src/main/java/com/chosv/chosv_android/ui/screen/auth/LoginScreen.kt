@@ -17,15 +17,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,6 +69,13 @@ fun LoginScreen(
     val loginSuccess by viewModel.loginSuccess
     var rememberMeChecked by remember { mutableStateOf(false) }
 
+    // Forgot password states
+    val showForgotPasswordDialog by viewModel.showForgotPasswordDialog
+    val forgotPasswordEmail by viewModel.forgotPasswordEmail
+    val isSendingForgotPassword by viewModel.isSendingForgotPassword
+    val forgotPasswordMessage by viewModel.forgotPasswordMessage
+    val forgotPasswordError by viewModel.forgotPasswordError
+
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
@@ -95,7 +107,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.fillMaxHeight(0.0078f))
 
             Text(
-                text = "GTG SHOP",
+                text = "Chợ Sinh Viên",
                 textAlign = TextAlign.Center,
                 fontSize = 24.sp,
                 modifier = Modifier.fillMaxWidth()
@@ -150,10 +162,9 @@ fun LoginScreen(
                 Text(
                     text = "Quên mật khẩu?",
                     fontSize = 16.sp,
-                    //color = Color(0xFF2196F3), // màu xanh
-                    //textDecoration = TextDecoration.Underline, // gạch chân
+                    color = Color(0xFF2196F3),
                     modifier = Modifier.clickable {
-                        // gọi api quên mật khẩu
+                        viewModel.showForgotPasswordDialog()
                     }
                         .weight(1f)
                         .fillMaxWidth(),
@@ -198,6 +209,19 @@ fun LoginScreen(
             }
         }
     }
+
+    // Forgot Password Dialog
+    if (showForgotPasswordDialog) {
+        ForgotPasswordDialog(
+            email = forgotPasswordEmail,
+            isLoading = isSendingForgotPassword,
+            successMessage = forgotPasswordMessage,
+            errorMessage = forgotPasswordError,
+            onEmailChange = viewModel::onForgotPasswordEmailChanged,
+            onSend = viewModel::onSendForgotPassword,
+            onDismiss = viewModel::hideForgotPasswordDialog
+        )
+    }
 }
 
 @Composable
@@ -225,5 +249,95 @@ fun RememberMeRow(
                 .clickable { onCheckedChange(!checked) } // cho phép click vào text cũng toggle checkbox
         )
     }
+}
+
+@Composable
+fun ForgotPasswordDialog(
+    email: String,
+    isLoading: Boolean,
+    successMessage: String?,
+    errorMessage: String?,
+    onEmailChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Quên mật khẩu") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Nhập email để nhận link đặt lại mật khẩu",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = onEmailChange,
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Email,
+                            contentDescription = null
+                        )
+                    },
+                    enabled = !isLoading && successMessage == null
+                )
+
+                // Success message
+                if (successMessage != null) {
+                    Text(
+                        text = successMessage,
+                        color = Color(0xFF4CAF50),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // Error message
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage,
+                        color = Color(0xFFE53935),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (successMessage != null) {
+                Button(onClick = onDismiss) {
+                    Text("Đóng")
+                }
+            } else {
+                Button(
+                    onClick = onSend,
+                    enabled = !isLoading && email.isNotBlank()
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                    } else {
+                        Text("Gửi")
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            if (successMessage == null) {
+                TextButton(onClick = onDismiss) {
+                    Text("Hủy")
+                }
+            }
+        }
+    )
 }
 
