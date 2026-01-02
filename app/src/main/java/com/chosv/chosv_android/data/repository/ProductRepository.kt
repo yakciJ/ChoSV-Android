@@ -36,6 +36,13 @@ interface ProductRepository {
         pageSize: Int,
         sortBy: String
     ): PaginatedResponse<Product>
+
+    // Lấy sản phẩm theo userName
+    suspend fun getProductsByUserName(
+        userName: String,
+        page: Int,
+        pageSize: Int
+    ): PaginatedResponse<Product>
 }
 
 /**
@@ -96,5 +103,13 @@ class ProductRepositoryImpl(
             pageSize = pageSize,
             sortBy = sortBy
         )
+    }
+
+    override suspend fun getProductsByUserName(
+        userName: String,
+        page: Int,
+        pageSize: Int
+    ): PaginatedResponse<Product> {
+        return productApiService.getProductsByUserName(userName, page, pageSize)
     }
 }

@@ -100,6 +100,9 @@ fun ProductScreen(
                 },
                 onContactSellerClick = { sellerId, sellerName ->
                     navController.navigate("chat/$sellerId/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
+                },
+                onViewSellerProfileClick = { sellerName ->
+                    navController.navigate("user_profile/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
                 }
             )
         }
@@ -115,6 +118,7 @@ fun ProductDetailContent(
     onBackClick: () -> Unit,
     onFavoriteClick: (Int, Boolean) -> Unit,
     onContactSellerClick: (sellerId: String, sellerName: String) -> Unit,
+    onViewSellerProfileClick: (sellerName: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImage by remember { mutableStateOf(product.productImages.firstOrNull()) }
@@ -228,7 +232,7 @@ fun ProductDetailContent(
                 Text(text = product.sellerFullName, fontWeight = FontWeight.Bold)
                 Text(text = "Tham gia từ ${formatDateString(product.sellerJoinedDate)}", style = MaterialTheme.typography.bodySmall)
             }
-            Button(onClick = { /*TODO*/ }) {
+            Button(onClick = { onViewSellerProfileClick(product.sellerName) }) {
                 Text(text = "Xem trang")
             }
         }
@@ -352,7 +356,8 @@ fun ProductScreenPreview() {
             onProductClick = {},
             onBackClick = {},
             onFavoriteClick = { _, _ -> },
-            onContactSellerClick = { _, _ -> }
+            onContactSellerClick = { _, _ -> },
+            onViewSellerProfileClick = {}
         )
     }
 }

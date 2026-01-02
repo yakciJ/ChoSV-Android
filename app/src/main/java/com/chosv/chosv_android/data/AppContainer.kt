@@ -10,6 +10,7 @@ import com.chosv.chosv_android.data.network.ChatHubService
 import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ImageApiService
 import com.chosv.chosv_android.data.network.ProductApiService
+import com.chosv.chosv_android.data.network.UserApiService
 import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
 import com.chosv.chosv_android.data.repository.CategoryRepository
@@ -22,6 +23,8 @@ import com.chosv.chosv_android.data.repository.ImageRepository
 import com.chosv.chosv_android.data.repository.ImageRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
+import com.chosv.chosv_android.data.repository.UserProfileRepository
+import com.chosv.chosv_android.data.repository.UserProfileRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserRepository
 import com.chosv.chosv_android.data.repository.UserRepositoryImpl
 import com.chosv.chosv_android.preferences.TokenPreferences
@@ -44,6 +47,7 @@ interface AppContainer {
     val tokenPreferences: TokenPreferences
     val authRepository: AuthRepository
     val userRepository: UserRepository
+    val userProfileRepository: UserProfileRepository
     val productRepository: ProductRepository
     val favoriteRepository: FavoriteRepository
     val imageRepository: ImageRepository
@@ -130,6 +134,14 @@ class DefaultAppContainer(
 
     override val userRepository: UserRepository by lazy {
         UserRepositoryImpl(authApiService, tokenPreferences)
+    }
+
+    private val userApiService: UserApiService by lazy {
+        retrofit.create(UserApiService::class.java)
+    }
+
+    override val userProfileRepository: UserProfileRepository by lazy {
+        UserProfileRepositoryImpl(userApiService)
     }
 
     private val productApiService: ProductApiService by lazy {

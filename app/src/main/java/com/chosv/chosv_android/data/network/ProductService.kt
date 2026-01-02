@@ -111,4 +111,17 @@ interface ProductApiService {
         @Query("pageSize") pageSize: Int = 12,
         @Query("sortBy") sortBy: String = "relevance"
     ): PaginatedResponse<Product>
+
+    /**
+     * Lấy danh sách sản phẩm của một người dùng theo userName
+     * @param userName: tên đăng nhập của người dùng
+     * @param page: số trang
+     * @param pageSize: số lượng mỗi trang
+     */
+    @GET("api/Product/user/{userName}")
+    suspend fun getProductsByUserName(
+        @Path("userName") userName: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 10
+    ): PaginatedResponse<Product>
 }

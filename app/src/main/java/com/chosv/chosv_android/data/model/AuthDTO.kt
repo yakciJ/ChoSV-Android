@@ -39,9 +39,9 @@ data class UserProfile(
     val userName: String,
     val fullName: String,
     val email: String,
-    val phoneNumber: String = "",
-    val avatarImage: String = "",
-    val bio: String = "",
-    val address: String = "",
-    val createdAt: String = ""
+    val phoneNumber: String? = null,
+    val avatarImage: String? = null,
+    val bio: String? = null,
+    val address: String? = null,
+    val createdAt: String? = null
 )

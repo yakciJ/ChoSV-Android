@@ -20,6 +20,7 @@ sealed class BrowsingType {
     data object Newest : BrowsingType()
     data object Popular : BrowsingType()
     data class Category(val categoryId: Int, val categoryName: String) : BrowsingType()
+    data class User(val userName: String) : BrowsingType()
 }
 
 data class BrowsingUiState(
@@ -53,6 +54,7 @@ class BrowsingViewModel(
             is BrowsingType.Newest -> "Sản phẩm mới nhất"
             is BrowsingType.Popular -> "Sản phẩm nổi bật"
             is BrowsingType.Category -> browsingType.categoryName
+            is BrowsingType.User -> "Sản phẩm của \"${browsingType.userName}\""
         }
         _uiState.update { it.copy(title = title) }
         loadProducts(1)
@@ -105,6 +107,22 @@ class BrowsingViewModel(
                                 totalPages = response.products.totalPages,
                                 hasPrevious = response.products.hasPrevious,
                                 hasNext = response.products.hasNext
+                            )
+                        }
+                    }
+                    is BrowsingType.User -> {
+                        val response = productRepository.getProductsByUserName(
+                            browsingType.userName, page, pageSize
+                        )
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                products = response.items,
+                                totalCount = response.totalCount,
+                                currentPage = response.page,
+                                totalPages = response.totalPages,
+                                hasPrevious = response.hasPrevious,
+                                hasNext = response.hasNext
                             )
                         }
                     }

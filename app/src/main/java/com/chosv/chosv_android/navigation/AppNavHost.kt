@@ -21,6 +21,7 @@ import com.chosv.chosv_android.ui.screen.messages.MessagesScreen
 import com.chosv.chosv_android.ui.screen.product.ProductScreen
 import com.chosv.chosv_android.ui.screen.profile.ProfileScreen
 import com.chosv.chosv_android.ui.screen.search.SearchScreen
+import com.chosv.chosv_android.ui.screen.userprofile.UserProfileScreen
 import java.net.URLDecoder
 
 @Composable
@@ -150,6 +151,40 @@ fun AppNavHost(
             ChatScreen(
                 otherUserId = otherUserId,
                 otherUserName = otherUserName,
+                navController = navController
+            )
+        }
+
+        // --- Màn hình trang cá nhân người dùng ---
+        composable(
+            route = Screen.UserProfile.route,
+            arguments = listOf(
+                navArgument("userName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val userName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("userName") ?: "",
+                "UTF-8"
+            )
+            UserProfileScreen(
+                userName = userName,
+                navController = navController
+            )
+        }
+
+        // --- Màn hình duyệt sản phẩm theo người dùng ---
+        composable(
+            route = Screen.BrowsingUser.route,
+            arguments = listOf(
+                navArgument("userName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val userName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("userName") ?: "",
+                "UTF-8"
+            )
+            BrowsingScreen(
+                browsingType = BrowsingType.User(userName),
                 navController = navController
             )
         }

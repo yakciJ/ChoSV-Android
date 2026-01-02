@@ -34,6 +34,12 @@ sealed class Screen(val route: String, val icon: ImageVector?, @StringRes val la
 
     // Chat screen
     data object Chat : Screen("chat/{otherUserId}/{otherUserName}", null, R.string.msg)
+
+    // User profile screen
+    data object UserProfile : Screen("user_profile/{userName}", null, R.string.profile)
+
+    // Browsing user products screen
+    data object BrowsingUser : Screen("browsing/user/{userName}", null, R.string.profile)
 }
 
 val bottomNavItems = listOf(

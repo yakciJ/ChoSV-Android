@@ -38,10 +38,10 @@ data class ChatUserInfo(
     val userName: String,
     val fullName: String,
     val email: String,
-    val phoneNumber: String = "",
+    val phoneNumber: String? = null,
     val avatarImage: String? = null,
-    val bio: String = "",
-    val address: String = "",
-    val createdAt: String = ""
+    val bio: String? = null,
+    val address: String? = null,
+    val createdAt: String? = null
 )
 
