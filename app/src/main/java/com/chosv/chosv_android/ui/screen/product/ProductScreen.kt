@@ -97,6 +97,9 @@ fun ProductScreen(
                 onProductClick = { clickedProductId -> navController.navigate("products/$clickedProductId") },
                 onFavoriteClick = { clickedProductId, isFavorited ->
                     viewModel.toggleFavorite(clickedProductId, isFavorited)
+                },
+                onContactSellerClick = { sellerId, sellerName ->
+                    navController.navigate("chat/$sellerId/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
                 }
             )
         }
@@ -111,6 +114,7 @@ fun ProductDetailContent(
     onProductClick: (Int) -> Unit,
     onBackClick: () -> Unit,
     onFavoriteClick: (Int, Boolean) -> Unit,
+    onContactSellerClick: (sellerId: String, sellerName: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImage by remember { mutableStateOf(product.productImages.firstOrNull()) }
@@ -184,7 +188,7 @@ fun ProductDetailContent(
         )
 
         Button(
-            onClick = { /*TODO*/ },
+            onClick = { onContactSellerClick(product.sellerId, product.sellerName) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -347,7 +351,8 @@ fun ProductScreenPreview() {
             popularProducts = emptyList(),
             onProductClick = {},
             onBackClick = {},
-            onFavoriteClick = { _, _ -> }
+            onFavoriteClick = { _, _ -> },
+            onContactSellerClick = { _, _ -> }
         )
     }
 }

@@ -11,6 +11,7 @@ import com.chosv.chosv_android.data.model.Screen
 import com.chosv.chosv_android.ui.screen.auth.LoginScreen
 import com.chosv.chosv_android.ui.screen.browsing.BrowsingScreen
 import com.chosv.chosv_android.ui.screen.browsing.BrowsingType
+import com.chosv.chosv_android.ui.screen.chat.ChatScreen
 import com.chosv.chosv_android.ui.screen.favorite.FavoriteScreen
 import com.chosv.chosv_android.ui.screen.home.HomeScreen
 import com.chosv.chosv_android.ui.screen.management.CreatePostScreen
@@ -129,6 +130,26 @@ fun AppNavHost(
             val categoryName = URLDecoder.decode(rawName, "UTF-8")
             BrowsingScreen(
                 browsingType = BrowsingType.Category(categoryId, categoryName),
+                navController = navController
+            )
+        }
+
+        // --- Màn hình chat với một người dùng ---
+        composable(
+            route = Screen.Chat.route,
+            arguments = listOf(
+                navArgument("otherUserId") { type = NavType.StringType },
+                navArgument("otherUserName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val otherUserId = backStackEntry.arguments?.getString("otherUserId") ?: return@composable
+            val otherUserName = URLDecoder.decode(
+                backStackEntry.arguments?.getString("otherUserName") ?: "",
+                "UTF-8"
+            )
+            ChatScreen(
+                otherUserId = otherUserId,
+                otherUserName = otherUserName,
                 navController = navController
             )
         }

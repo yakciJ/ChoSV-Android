@@ -3,7 +3,9 @@ package com.chosv.chosv_android
 import com.chosv.chosv_android.data.EnvVariable
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 fun formatCurrency(amount: Double): String {
     val formatter = NumberFormat.getCurrencyInstance(Locale("vi", "VN"))
@@ -40,6 +42,43 @@ fun formatDateString(inputDate: String?): String {
         } catch (e2: Exception) {
             inputDate // Trả về ngày gốc nếu không thể định dạng
         }
+    }
+}
+
+/**
+ * Chuyển đổi thời gian thành dạng tương đối (vd: "2 phút trước", "1 giờ trước")
+ */
+fun formatRelativeTime(inputDate: String?): String {
+    if (inputDate.isNullOrEmpty()) return ""
+
+    return try {
+        // Parse ISO 8601 date format
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        inputFormat.timeZone = java.util.TimeZone.getTimeZone("UTC")
+
+        val dateWithoutMillis = inputDate.substringBefore(".")
+        val date = inputFormat.parse(dateWithoutMillis) ?: return ""
+
+        val now = Date()
+        val diffInMillis = now.time - date.time
+
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(diffInMillis)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(diffInMillis)
+        val hours = TimeUnit.MILLISECONDS.toHours(diffInMillis)
+        val days = TimeUnit.MILLISECONDS.toDays(diffInMillis)
+
+        when {
+            seconds < 60 -> "Vừa xong"
+            minutes < 60 -> "$minutes phút trước"
+            hours < 24 -> "$hours giờ trước"
+            days < 7 -> "$days ngày trước"
+            else -> {
+                val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                outputFormat.format(date)
+            }
+        }
+    } catch (e: Exception) {
+        ""
     }
 }
 

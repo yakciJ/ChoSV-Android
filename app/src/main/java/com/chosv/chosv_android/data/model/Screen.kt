@@ -31,6 +31,9 @@ sealed class Screen(val route: String, val icon: ImageVector?, @StringRes val la
 
     // Search screen
     data object Search : Screen("search", null, R.string.search)
+
+    // Chat screen
+    data object Chat : Screen("chat/{otherUserId}/{otherUserName}", null, R.string.msg)
 }
 
 val bottomNavItems = listOf(

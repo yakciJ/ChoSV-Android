@@ -5,6 +5,8 @@ import com.chosv.chosv_android.data.interceptor.AuthInterceptor
 import com.chosv.chosv_android.data.interceptor.TokenAuthenticator
 import com.chosv.chosv_android.data.network.AuthApiService
 import com.chosv.chosv_android.data.network.CategoryApiService
+import com.chosv.chosv_android.data.network.ChatApiService
+import com.chosv.chosv_android.data.network.ChatHubService
 import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ImageApiService
 import com.chosv.chosv_android.data.network.ProductApiService
@@ -12,6 +14,8 @@ import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
 import com.chosv.chosv_android.data.repository.CategoryRepository
 import com.chosv.chosv_android.data.repository.CategoryRepositoryImpl
+import com.chosv.chosv_android.data.repository.ChatRepository
+import com.chosv.chosv_android.data.repository.ChatRepositoryImpl
 import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.FavoriteRepositoryImpl
 import com.chosv.chosv_android.data.repository.ImageRepository
@@ -44,6 +48,8 @@ interface AppContainer {
     val favoriteRepository: FavoriteRepository
     val imageRepository: ImageRepository
     val categoryRepository: CategoryRepository
+    val chatRepository: ChatRepository
+    val chatHubService: ChatHubService
 }
 
 class DefaultAppContainer(
@@ -156,6 +162,18 @@ class DefaultAppContainer(
 
     override val categoryRepository: CategoryRepository by lazy {
         CategoryRepositoryImpl(categoryApiService)
+    }
+
+    private val chatApiService: ChatApiService by lazy {
+        retrofit.create(ChatApiService::class.java)
+    }
+
+    override val chatRepository: ChatRepository by lazy {
+        ChatRepositoryImpl(chatApiService)
+    }
+
+    override val chatHubService: ChatHubService by lazy {
+        ChatHubService(tokenPreferences)
     }
 
 }
