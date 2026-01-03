@@ -13,7 +13,7 @@ interface AuthApiService {
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
     @POST("api/User/register")
-    suspend fun register(@Body request: RegisterRequest): AuthResponse
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterSuccessResponse>
 
     // API refresh token - trả về plain string (access token mới)
     @GET("api/User/refreshToken")

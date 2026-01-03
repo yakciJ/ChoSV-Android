@@ -67,6 +67,8 @@ fun LoginScreen(
     val password by viewModel.password
     val passwordVisible by viewModel.passwordVisible
     val loginSuccess by viewModel.loginSuccess
+    val loginError by viewModel.loginError
+    val isLoading by viewModel.isLoading
     var rememberMeChecked by remember { mutableStateOf(false) }
 
     // Forgot password states
@@ -175,6 +177,16 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.fillMaxHeight(0.1f))
 
+            // Hiển thị lỗi nếu có
+            if (loginError != null) {
+                Text(
+                    text = loginError ?: "",
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             Button(
                 onClick = viewModel::onLoginClick,
                 modifier = Modifier
@@ -184,9 +196,18 @@ fun LoginScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2196F3),
                     contentColor = Color.White
-                )
+                ),
+                enabled = !isLoading
             ) {
-                Text("Đăng Nhập", fontSize = 20.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Đăng Nhập", fontSize = 20.sp)
+                }
             }
 
             Spacer(modifier = Modifier.fillMaxHeight(0.1f))

@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.chosv.chosv_android.data.model.Screen
 import com.chosv.chosv_android.ui.screen.auth.LoginScreen
+import com.chosv.chosv_android.ui.screen.auth.SignUpScreen
 import com.chosv.chosv_android.ui.screen.browsing.BrowsingScreen
 import com.chosv.chosv_android.ui.screen.browsing.BrowsingType
 import com.chosv.chosv_android.ui.screen.chat.ChatScreen
@@ -41,6 +42,20 @@ fun AppNavHost(
                 onLoginSuccess = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // --- Màn hình Signup ---
+        composable(Screen.Signup.route) {
+            SignUpScreen(
+                onBackToLogin = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Signup.route) { inclusive = true }
                     }
                 }
             )

@@ -330,7 +330,7 @@ private fun UserInfoSection(userInfo: ChatUserInfo) {
             if (!userInfo.bio.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = userInfo.bio,
+                    text = userInfo.bio ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

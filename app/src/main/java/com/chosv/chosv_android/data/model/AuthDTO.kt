@@ -60,3 +60,15 @@ data class ChangePasswordRequest(
     val newPassword: String,
     val confirmPassword: String
 )
+
+@Serializable
+data class RegisterSuccessResponse(
+    val message: String
+)
+
+@Serializable
+data class RegisterErrorResponse(
+    val success: Boolean,
+    val error: String
+)
+

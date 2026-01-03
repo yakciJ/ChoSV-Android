@@ -124,7 +124,7 @@ class LoginViewModel(
                 },
                 onFailure = { e ->
                     Log.e("LoginViewModel", "Login thất bại: ${e.localizedMessage}")
-                    loginError.value = "Sai tài khoản hoặc mật khẩu"
+                    loginError.value = "Tài khoản hoặc mật khẩu không đúng!"
                 }
             )
         }
