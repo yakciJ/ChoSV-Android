@@ -92,6 +92,7 @@ fun ProductScreen(
                 product = it,
                 newestProducts = uiState.newestProducts,
                 popularProducts = uiState.popularProducts,
+                similarProducts = uiState.similarProducts,
                 modifier = modifier,
                 onBackClick = onBack,
                 onProductClick = { clickedProductId -> navController.navigate("products/$clickedProductId") },
@@ -103,6 +104,16 @@ fun ProductScreen(
                 },
                 onViewSellerProfileClick = { sellerName ->
                     navController.navigate("user_profile/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
+                },
+                onViewMoreSimilar = {
+                    val encodedName = java.net.URLEncoder.encode(it.productName, "UTF-8")
+                    navController.navigate("browsing/similar/${it.productId}/$encodedName")
+                },
+                onViewMorePopular = {
+                    navController.navigate("browsing/popular")
+                },
+                onViewMoreNewest = {
+                    navController.navigate("browsing/newest")
                 }
             )
         }
@@ -114,11 +125,15 @@ fun ProductDetailContent(
     product: ProductDetail,
     newestProducts: List<Product>,
     popularProducts: List<Product>,
+    similarProducts: List<Product>,
     onProductClick: (Int) -> Unit,
     onBackClick: () -> Unit,
     onFavoriteClick: (Int, Boolean) -> Unit,
     onContactSellerClick: (sellerId: String, sellerName: String) -> Unit,
     onViewSellerProfileClick: (sellerName: String) -> Unit,
+    onViewMoreSimilar: () -> Unit,
+    onViewMorePopular: () -> Unit,
+    onViewMoreNewest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImage by remember { mutableStateOf(product.productImages.firstOrNull()) }
@@ -266,18 +281,31 @@ fun ProductDetailContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // --- Similar Products ---
+        if (similarProducts.isNotEmpty()) {
+            ProductCarousel(
+                title = "Sản phẩm tương tự",
+                products = similarProducts,
+                onProductClick = onProductClick,
+                onFavoriteClick = onFavoriteClick,
+                onViewMore = onViewMoreSimilar
+            )
+        }
+
         // --- Related Products ---
         ProductCarousel(
             title = "Sản phẩm nổi bật",
             products = popularProducts,
             onProductClick = onProductClick,
-            onFavoriteClick = onFavoriteClick
+            onFavoriteClick = onFavoriteClick,
+            onViewMore = onViewMorePopular
         )
         ProductCarousel(
             title = "Sản phẩm mới nhất",
             products = newestProducts,
             onProductClick = onProductClick,
-            onFavoriteClick = onFavoriteClick
+            onFavoriteClick = onFavoriteClick,
+            onViewMore = onViewMoreNewest
         )
 
     }
@@ -297,15 +325,33 @@ fun ProductCarousel(
     title: String,
     products: List<Product>,
     onProductClick: (Int) -> Unit,
-    onFavoriteClick: (Int, Boolean) -> Unit
+    onFavoriteClick: (Int, Boolean) -> Unit,
+    onViewMore: (() -> Unit)? = null
 ) {
     Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            if (onViewMore != null) {
+                Text(
+                    text = "Xem thêm",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { onViewMore() }
+                )
+            }
+        }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -353,11 +399,15 @@ fun ProductScreenPreview() {
             ),
             newestProducts = emptyList(),
             popularProducts = emptyList(),
+            similarProducts = emptyList(),
             onProductClick = {},
             onBackClick = {},
             onFavoriteClick = { _, _ -> },
             onContactSellerClick = { _, _ -> },
-            onViewSellerProfileClick = {}
+            onViewSellerProfileClick = {},
+            onViewMoreSimilar = {},
+            onViewMorePopular = {},
+            onViewMoreNewest = {}
         )
     }
 }

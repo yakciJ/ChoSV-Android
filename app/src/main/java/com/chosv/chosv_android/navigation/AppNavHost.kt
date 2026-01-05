@@ -150,6 +150,23 @@ fun AppNavHost(
             )
         }
 
+        // --- Màn hình duyệt sản phẩm tương tự ---
+        composable(
+            route = Screen.BrowsingSimilar.route,
+            arguments = listOf(
+                navArgument("productId") { type = NavType.IntType },
+                navArgument("productName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("productId") ?: return@composable
+            val rawName = backStackEntry.arguments?.getString("productName") ?: ""
+            val productName = URLDecoder.decode(rawName, "UTF-8")
+            BrowsingScreen(
+                browsingType = BrowsingType.Similar(productId, productName),
+                navController = navController
+            )
+        }
+
         // --- Màn hình chat với một người dùng ---
         composable(
             route = Screen.Chat.route,

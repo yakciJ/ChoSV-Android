@@ -16,6 +16,7 @@ data class ProductUiState(
     val productDetail: ProductDetail? = null,
     val popularProducts: List<Product> = emptyList(),
     val newestProducts: List<Product> = emptyList(),
+    val similarProducts: List<Product> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -37,17 +38,19 @@ class ProductViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Chạy song song 3 yêu cầu mạng
+                // Chạy song song 4 yêu cầu mạng
                 val detail = productRepository.getProductDetail(productId)
                 val popularResponse = productRepository.getPopularProducts(page = 1, pageSize = 10, daysBack = 30)
                 val newestResponse = productRepository.getNewestProducts(page = 1, pageSize = 10)
+                val similarResponse = productRepository.getSimilarProducts(productId = productId, page = 1, pageSize = 10)
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         productDetail = detail,
                         popularProducts = popularResponse.items,
-                        newestProducts = newestResponse.items
+                        newestProducts = newestResponse.items,
+                        similarProducts = similarResponse.items
                     )
                 }
             } catch (e: Exception) {
@@ -89,7 +92,18 @@ class ProductViewModel(
                     product
                 }
             }
-            currentState.copy(popularProducts = updatedPopular, newestProducts = updatedNewest)
+            val updatedSimilar = currentState.similarProducts.map { product ->
+                if (product.productId == productId) {
+                    product.copy(isFavorited = !product.isFavorited)
+                } else {
+                    product
+                }
+            }
+            currentState.copy(
+                popularProducts = updatedPopular,
+                newestProducts = updatedNewest,
+                similarProducts = updatedSimilar
+            )
         }
     }
 

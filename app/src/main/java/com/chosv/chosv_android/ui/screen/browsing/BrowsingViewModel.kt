@@ -21,6 +21,7 @@ sealed class BrowsingType {
     data object Popular : BrowsingType()
     data class Category(val categoryId: Int, val categoryName: String) : BrowsingType()
     data class User(val userName: String) : BrowsingType()
+    data class Similar(val productId: Int, val productName: String) : BrowsingType()
 }
 
 data class BrowsingUiState(
@@ -55,6 +56,7 @@ class BrowsingViewModel(
             is BrowsingType.Popular -> "Sản phẩm nổi bật"
             is BrowsingType.Category -> browsingType.categoryName
             is BrowsingType.User -> "Sản phẩm của \"${browsingType.userName}\""
+            is BrowsingType.Similar -> "Sản phẩm tương tự \"${browsingType.productName}\""
         }
         _uiState.update { it.copy(title = title) }
         loadProducts(1)
@@ -113,6 +115,22 @@ class BrowsingViewModel(
                     is BrowsingType.User -> {
                         val response = productRepository.getProductsByUserName(
                             browsingType.userName, page, pageSize
+                        )
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                products = response.items,
+                                totalCount = response.totalCount,
+                                currentPage = response.page,
+                                totalPages = response.totalPages,
+                                hasPrevious = response.hasPrevious,
+                                hasNext = response.hasNext
+                            )
+                        }
+                    }
+                    is BrowsingType.Similar -> {
+                        val response = productRepository.getSimilarProducts(
+                            browsingType.productId, page, pageSize
                         )
                         _uiState.update {
                             it.copy(

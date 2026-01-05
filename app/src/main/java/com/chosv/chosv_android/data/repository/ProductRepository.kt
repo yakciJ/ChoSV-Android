@@ -43,6 +43,13 @@ interface ProductRepository {
         page: Int,
         pageSize: Int
     ): PaginatedResponse<Product>
+
+    // Lấy sản phẩm tương tự
+    suspend fun getSimilarProducts(
+        productId: Int,
+        page: Int,
+        pageSize: Int
+    ): PaginatedResponse<Product>
 }
 
 /**
@@ -111,5 +118,13 @@ class ProductRepositoryImpl(
         pageSize: Int
     ): PaginatedResponse<Product> {
         return productApiService.getProductsByUserName(userName, page, pageSize)
+    }
+
+    override suspend fun getSimilarProducts(
+        productId: Int,
+        page: Int,
+        pageSize: Int
+    ): PaginatedResponse<Product> {
+        return productApiService.getSimilarProducts(productId, page, pageSize)
     }
 }

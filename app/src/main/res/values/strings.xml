@@ -21,6 +21,7 @@
     <string name="browsing_newest">Sản phẩm mới nhất</string>
     <string name="browsing_popular">Sản phẩm nổi bật</string>
     <string name="browsing_category">Danh mục</string>
+    <string name="browsing_similar">Sản phẩm tương tự</string>
     <string name="search_results_for">Kết quả tìm kiếm cho</string>
     <string name="search_placeholder">Nhập từ khóa tìm kiếm...</string>
     <string name="filter">Lọc</string>

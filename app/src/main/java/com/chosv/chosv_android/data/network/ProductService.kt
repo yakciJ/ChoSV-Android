@@ -124,4 +124,17 @@ interface ProductApiService {
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 10
     ): PaginatedResponse<Product>
+
+    /**
+     * Lấy danh sách sản phẩm tương tự
+     * @param productId: ID sản phẩm
+     * @param page: số trang
+     * @param pageSize: số lượng mỗi trang
+     */
+    @GET("api/Product/{productId}/similar")
+    suspend fun getSimilarProducts(
+        @Path("productId") productId: Int,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 10
+    ): PaginatedResponse<Product>
 }
