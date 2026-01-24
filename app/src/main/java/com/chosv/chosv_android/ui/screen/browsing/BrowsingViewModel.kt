@@ -82,7 +82,7 @@ class BrowsingViewModel(
                         }
                     }
                     is BrowsingType.Popular -> {
-                        val response = productRepository.getPopularProducts(page, pageSize, 30)
+                        val response = productRepository.getPopularProducts(page, pageSize, 100)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,

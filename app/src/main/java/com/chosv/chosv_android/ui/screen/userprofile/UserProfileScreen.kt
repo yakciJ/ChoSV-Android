@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -41,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -67,8 +69,10 @@ import com.chosv.chosv_android.ChoSVApplication
 import com.chosv.chosv_android.convertBaseUrl
 import com.chosv.chosv_android.data.model.ChatUserInfo
 import com.chosv.chosv_android.data.model.Product
+import com.chosv.chosv_android.data.model.ReportEntityType
 import com.chosv.chosv_android.data.model.UserWallPost
 import com.chosv.chosv_android.ui.components.ProductCard
+import com.chosv.chosv_android.ui.components.ReportDialog
 import java.net.URLEncoder
 
 @Composable
@@ -84,12 +88,21 @@ fun UserProfileScreen(
             productRepository = application.container.productRepository,
             favoriteRepository = application.container.favoriteRepository,
             userRepository = application.container.userRepository,
+            reportRepository = application.container.reportRepository,
             userName = userName
         )
     )
 
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Hiển thị snackbar khi báo cáo thành công
+    LaunchedEffect(uiState.reportSuccess) {
+        if (uiState.reportSuccess) {
+            snackbarHostState.showSnackbar("Báo cáo đã được gửi thành công!")
+            viewModel.clearReportSuccess()
+        }
+    }
 
     // Hiển thị error snackbar
     LaunchedEffect(uiState.error) {
@@ -99,150 +112,183 @@ fun UserProfileScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        // Header
-        UserProfileHeader(
-            title = uiState.userInfo?.fullName ?: userName,
-            onBackClick = { navController.popBackStack() }
+    // Report User Dialog
+    if (uiState.showReportUserDialog && uiState.userInfo != null) {
+        ReportDialog(
+            entityType = ReportEntityType.User,
+            entityName = uiState.userInfo!!.fullName,
+            isLoading = uiState.isReporting,
+            onDismiss = { viewModel.hideReportUserDialog() },
+            onSubmit = { reason -> viewModel.reportUser(reason) }
         )
+    }
 
-        when {
-            uiState.isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            uiState.error != null && uiState.userInfo == null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = uiState.error ?: "Đã có lỗi xảy ra")
-                }
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    // User info section
-                    item {
-                        uiState.userInfo?.let { userInfo ->
-                            UserInfoSection(userInfo = userInfo)
-                        }
+    // Report Comment Dialog
+    if (uiState.showReportCommentDialog) {
+        ReportDialog(
+            entityType = ReportEntityType.Comment,
+            entityName = uiState.reportingCommentPosterName,
+            isLoading = uiState.isReporting,
+            onDismiss = { viewModel.hideReportCommentDialog() },
+            onSubmit = { reason -> viewModel.reportComment(reason) }
+        )
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header
+            UserProfileHeader(
+                title = uiState.userInfo?.fullName ?: userName,
+                onBackClick = { navController.popBackStack() },
+                onReportClick = { viewModel.showReportUserDialog() }
+            )
+
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-
-                    // Products section
-                    item {
-                        ProductsSection(
-                            products = uiState.products,
-                            totalCount = uiState.totalProductCount,
-                            isLoading = uiState.isLoadingProducts,
-                            onSeeMoreClick = {
-                                val encodedUserName = URLEncoder.encode(userName, "UTF-8")
-                                navController.navigate("browsing/user/$encodedUserName")
-                            },
-                            onProductClick = { productId ->
-                                navController.navigate("products/$productId")
-                            },
-                            onFavoriteClick = { productId, isFavorited ->
-                                viewModel.toggleFavorite(productId, isFavorited)
+                }
+                uiState.error != null && uiState.userInfo == null -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = uiState.error ?: "Đã có lỗi xảy ra")
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        // User info section
+                        item {
+                            uiState.userInfo?.let { userInfo ->
+                                UserInfoSection(userInfo = userInfo)
                             }
-                        )
-                    }
+                        }
 
-                    // Divider
-                    item {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    }
+                        // Products section
+                        item {
+                            ProductsSection(
+                                products = uiState.products,
+                                totalCount = uiState.totalProductCount,
+                                isLoading = uiState.isLoadingProducts,
+                                onSeeMoreClick = {
+                                    val encodedUserName = URLEncoder.encode(userName, "UTF-8")
+                                    navController.navigate("browsing/user/$encodedUserName")
+                                },
+                                onProductClick = { productId: Int ->
+                                    navController.navigate("products/$productId")
+                                },
+                                onFavoriteClick = { productId: Int, isFavorited: Boolean ->
+                                    viewModel.toggleFavorite(productId, isFavorited)
+                                }
+                            )
+                        }
 
-                    // Wall posts section header
-                    item {
-                        Text(
-                            text = "Đánh giá",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
-                    }
+                        // Divider
+                        item {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        }
 
-                    // New comment input
-                    item {
-                        if (uiState.currentUserId != null) {
-                            NewCommentInput(
-                                text = uiState.newCommentText,
-                                onTextChange = { viewModel.updateNewCommentText(it) },
-                                onSubmit = { viewModel.submitNewComment() },
+                        // Wall posts section header
+                        item {
+                            Text(
+                                text = "Đánh giá",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+
+                        // New comment input
+                        item {
+                            if (uiState.currentUserId != null) {
+                                NewCommentInput(
+                                    text = uiState.newCommentText,
+                                    onTextChange = { text -> viewModel.updateNewCommentText(text) },
+                                    onSubmit = { viewModel.submitNewComment() },
+                                    isSubmitting = uiState.isSubmittingComment
+                                )
+                            }
+                        }
+
+                        // Wall posts list
+                        items(uiState.wallPosts, key = { it.userWallPostId }) { wallPost ->
+                            WallPostItem(
+                                wallPost = wallPost,
+                                currentUserId = uiState.currentUserId,
+                                isEditing = uiState.editingWallPostId == wallPost.userWallPostId,
+                                editingText = uiState.editingCommentText,
+                                onEditTextChange = { text -> viewModel.updateEditingCommentText(text) },
+                                onStartEdit = { viewModel.startEditingWallPost(wallPost) },
+                                onCancelEdit = { viewModel.cancelEditingWallPost() },
+                                onSubmitEdit = { viewModel.submitEditedComment() },
+                                onDelete = { viewModel.deleteWallPost(wallPost.userWallPostId) },
+                                onReport = { viewModel.showReportCommentDialog(wallPost.userWallPostId, wallPost.posterFullName) },
                                 isSubmitting = uiState.isSubmittingComment
                             )
                         }
-                    }
 
-                    // Wall posts list
-                    items(uiState.wallPosts, key = { it.userWallPostId }) { wallPost ->
-                        WallPostItem(
-                            wallPost = wallPost,
-                            currentUserId = uiState.currentUserId,
-                            isEditing = uiState.editingWallPostId == wallPost.userWallPostId,
-                            editingText = uiState.editingCommentText,
-                            onEditTextChange = { viewModel.updateEditingCommentText(it) },
-                            onStartEdit = { viewModel.startEditingWallPost(wallPost) },
-                            onCancelEdit = { viewModel.cancelEditingWallPost() },
-                            onSubmitEdit = { viewModel.submitEditedComment() },
-                            onDelete = { viewModel.deleteWallPost(wallPost.userWallPostId) },
-                            isSubmitting = uiState.isSubmittingComment
-                        )
-                    }
-
-                    // Load more wall posts
-                    if (uiState.hasMoreWallPosts) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (uiState.isLoadingWallPosts) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                                } else {
-                                    TextButton(onClick = { viewModel.loadMoreWallPosts() }) {
-                                        Text("Xem thêm đánh giá")
+                        // Load more wall posts
+                        if (uiState.hasMoreWallPosts) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (uiState.isLoadingWallPosts) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                    } else {
+                                        TextButton(onClick = { viewModel.loadMoreWallPosts() }) {
+                                            Text("Xem thêm đánh giá")
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    // Empty wall posts state
-                    if (uiState.wallPosts.isEmpty() && !uiState.isLoadingWallPosts) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "Chưa có đánh giá nào",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                        // Empty wall posts state
+                        if (uiState.wallPosts.isEmpty() && !uiState.isLoadingWallPosts) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Chưa có đánh giá nào",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+
+        // Snackbar Host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
 @Composable
 private fun UserProfileHeader(
     title: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onReportClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -265,6 +311,15 @@ private fun UserProfileHeader(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+
+        // Report user button
+        IconButton(onClick = onReportClick) {
+            Icon(
+                imageVector = Icons.Default.Flag,
+                contentDescription = "Báo cáo người dùng",
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }
 
@@ -542,6 +597,7 @@ private fun WallPostItem(
     onCancelEdit: () -> Unit,
     onSubmitEdit: () -> Unit,
     onDelete: () -> Unit,
+    onReport: () -> Unit,
     isSubmitting: Boolean
 ) {
     val isOwner = currentUserId == wallPost.posterId
@@ -615,6 +671,18 @@ private fun WallPostItem(
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Xóa",
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                // Report button for non-owners
+                if (!isOwner && !isEditing) {
+                    IconButton(onClick = onReport, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Flag,
+                            contentDescription = "Báo cáo bình luận",
                             modifier = Modifier.size(18.dp),
                             tint = MaterialTheme.colorScheme.error
                         )

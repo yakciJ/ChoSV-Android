@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
@@ -31,8 +32,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,9 +58,11 @@ import com.chosv.chosv_android.ChoSVApplication
 import com.chosv.chosv_android.convertBaseUrl
 import com.chosv.chosv_android.data.model.Product
 import com.chosv.chosv_android.data.model.ProductDetail
+import com.chosv.chosv_android.data.model.ReportEntityType
 import com.chosv.chosv_android.formatCurrency
 import com.chosv.chosv_android.formatDateString
 import com.chosv.chosv_android.ui.components.ProductCard
+import com.chosv.chosv_android.ui.components.ReportDialog
 import com.chosv.chosv_android.ui.theme.ChoSVAndroidTheme
 import androidx.navigation.NavHostController
 // cái ảnh to phải full ảnh, và ấn vào phải kiểu phóng to cái ảnh ra để xem rõ hơn..
@@ -72,51 +78,88 @@ fun ProductScreen(
         factory = ProductViewModel.provideFactory(
             productRepository = application.container.productRepository,
             favoriteRepository = application.container.favoriteRepository,
+            reportRepository = application.container.reportRepository,
             productId = productId
         )
     )
 
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    if (uiState.isLoading) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    // Hiển thị snackbar khi báo cáo thành công
+    LaunchedEffect(uiState.reportSuccess) {
+        if (uiState.reportSuccess) {
+            snackbarHostState.showSnackbar("Báo cáo đã được gửi thành công!")
+            viewModel.clearReportSuccess()
         }
-    } else if (uiState.error != null) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Lỗi: ${uiState.error}")
+    }
+
+    // Hiển thị snackbar khi có lỗi
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
         }
-    } else {
-        uiState.productDetail?.let {
-            ProductDetailContent(
-                product = it,
-                newestProducts = uiState.newestProducts,
-                popularProducts = uiState.popularProducts,
-                similarProducts = uiState.similarProducts,
-                modifier = modifier,
-                onBackClick = onBack,
-                onProductClick = { clickedProductId -> navController.navigate("products/$clickedProductId") },
-                onFavoriteClick = { clickedProductId, isFavorited ->
-                    viewModel.toggleFavorite(clickedProductId, isFavorited)
-                },
-                onContactSellerClick = { sellerId, sellerName ->
-                    navController.navigate("chat/$sellerId/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
-                },
-                onViewSellerProfileClick = { sellerName ->
-                    navController.navigate("user_profile/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
-                },
-                onViewMoreSimilar = {
-                    val encodedName = java.net.URLEncoder.encode(it.productName, "UTF-8")
-                    navController.navigate("browsing/similar/${it.productId}/$encodedName")
-                },
-                onViewMorePopular = {
-                    navController.navigate("browsing/popular")
-                },
-                onViewMoreNewest = {
-                    navController.navigate("browsing/newest")
-                }
-            )
+    }
+
+    // Report Dialog
+    if (uiState.showReportDialog && uiState.productDetail != null) {
+        ReportDialog(
+            entityType = ReportEntityType.Product,
+            entityName = uiState.productDetail!!.productName,
+            isLoading = uiState.isReporting,
+            onDismiss = { viewModel.hideReportDialog() },
+            onSubmit = { reason -> viewModel.reportProduct(reason) }
+        )
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (uiState.error != null && uiState.productDetail == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "Lỗi: ${uiState.error}")
+            }
+        } else {
+            uiState.productDetail?.let {
+                ProductDetailContent(
+                    product = it,
+                    newestProducts = uiState.newestProducts,
+                    popularProducts = uiState.popularProducts,
+                    similarProducts = uiState.similarProducts,
+                    onBackClick = onBack,
+                    onProductClick = { clickedProductId -> navController.navigate("products/$clickedProductId") },
+                    onFavoriteClick = { clickedProductId, isFavorited ->
+                        viewModel.toggleFavorite(clickedProductId, isFavorited)
+                    },
+                    onContactSellerClick = { sellerId, sellerName ->
+                        navController.navigate("chat/$sellerId/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
+                    },
+                    onViewSellerProfileClick = { sellerName ->
+                        navController.navigate("user_profile/${java.net.URLEncoder.encode(sellerName, "UTF-8")}")
+                    },
+                    onViewMoreSimilar = {
+                        val encodedName = java.net.URLEncoder.encode(it.productName, "UTF-8")
+                        navController.navigate("browsing/similar/${it.productId}/$encodedName")
+                    },
+                    onViewMorePopular = {
+                        navController.navigate("browsing/popular")
+                    },
+                    onViewMoreNewest = {
+                        navController.navigate("browsing/newest")
+                    },
+                    onReportClick = { viewModel.showReportDialog() }
+                )
+            }
         }
+
+        // Snackbar Host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -134,6 +177,7 @@ fun ProductDetailContent(
     onViewMoreSimilar: () -> Unit,
     onViewMorePopular: () -> Unit,
     onViewMoreNewest: () -> Unit,
+    onReportClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedImage by remember { mutableStateOf(product.productImages.firstOrNull()) }
@@ -160,8 +204,16 @@ fun ProductDetailContent(
                 text = product.productName,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f).padding(end = 16.dp)
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
             )
+            // Report button
+            IconButton(onClick = onReportClick) {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = "Báo cáo sản phẩm",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
 
         Image(
@@ -407,7 +459,8 @@ fun ProductScreenPreview() {
             onViewSellerProfileClick = {},
             onViewMoreSimilar = {},
             onViewMorePopular = {},
-            onViewMoreNewest = {}
+            onViewMoreNewest = {},
+            onReportClick = {}
         )
     }
 }

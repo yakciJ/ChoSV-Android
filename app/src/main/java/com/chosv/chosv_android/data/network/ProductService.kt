@@ -34,7 +34,7 @@ interface ProductApiService {
     suspend fun getPopularProducts(
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 12,
-        @Query("daysBack") daysBack: Int = 30
+        @Query("daysBack") daysBack: Int = 100,
     ): PaginatedResponse<Product>
 
     @GET("api/Product/{id}")

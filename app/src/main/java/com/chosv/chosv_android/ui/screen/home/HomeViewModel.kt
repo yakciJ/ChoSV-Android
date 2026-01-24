@@ -37,7 +37,7 @@ class HomeViewModel(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 // Gọi đồng thời 2 API để lấy 6 sản phẩm cho mỗi loại
-                val popularResponse = productRepository.getPopularProducts(page = 1, pageSize = 6, daysBack = 30)
+                val popularResponse = productRepository.getPopularProducts(page = 1, pageSize = 6, daysBack = 100)
                 val newestResponse = productRepository.getNewestProducts(page = 1, pageSize = 6)
 
                 // Cập nhật lại State với dữ liệu mới

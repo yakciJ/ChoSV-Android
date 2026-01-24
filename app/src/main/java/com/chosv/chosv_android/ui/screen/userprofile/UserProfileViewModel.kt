@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.chosv.chosv_android.data.model.ChatUserInfo
 import com.chosv.chosv_android.data.model.Product
+import com.chosv.chosv_android.data.model.ReportEntityType
 import com.chosv.chosv_android.data.model.UserWallPost
 import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.ProductRepository
+import com.chosv.chosv_android.data.repository.ReportRepository
 import com.chosv.chosv_android.data.repository.UserProfileRepository
 import com.chosv.chosv_android.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +42,15 @@ data class UserProfileUiState(
     val hasMoreWallPosts: Boolean = false,
 
     // Product count
-    val totalProductCount: Int = 0
+    val totalProductCount: Int = 0,
+
+    // Report state
+    val showReportUserDialog: Boolean = false,
+    val showReportCommentDialog: Boolean = false,
+    val reportingCommentId: Int? = null,
+    val reportingCommentPosterName: String = "",
+    val isReporting: Boolean = false,
+    val reportSuccess: Boolean = false
 )
 
 class UserProfileViewModel(
@@ -48,6 +58,7 @@ class UserProfileViewModel(
     private val productRepository: ProductRepository,
     private val favoriteRepository: FavoriteRepository,
     private val userRepository: UserRepository,
+    private val reportRepository: ReportRepository,
     private val userName: String
 ) : ViewModel() {
 
@@ -261,12 +272,107 @@ class UserProfileViewModel(
         _uiState.update { it.copy(error = null) }
     }
 
+    // Report User functions
+    fun showReportUserDialog() {
+        _uiState.update { it.copy(showReportUserDialog = true) }
+    }
+
+    fun hideReportUserDialog() {
+        _uiState.update { it.copy(showReportUserDialog = false) }
+    }
+
+    fun reportUser(reason: String) {
+        val userInfo = _uiState.value.userInfo ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isReporting = true) }
+            try {
+                reportRepository.sendReport(
+                    entityId = userInfo.userId,
+                    entityType = ReportEntityType.User,
+                    reason = reason
+                )
+                _uiState.update {
+                    it.copy(
+                        isReporting = false,
+                        showReportUserDialog = false,
+                        reportSuccess = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isReporting = false,
+                        error = "Không thể gửi báo cáo: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    // Report Comment functions
+    fun showReportCommentDialog(commentId: Int, posterName: String) {
+        _uiState.update {
+            it.copy(
+                showReportCommentDialog = true,
+                reportingCommentId = commentId,
+                reportingCommentPosterName = posterName
+            )
+        }
+    }
+
+    fun hideReportCommentDialog() {
+        _uiState.update {
+            it.copy(
+                showReportCommentDialog = false,
+                reportingCommentId = null,
+                reportingCommentPosterName = ""
+            )
+        }
+    }
+
+    fun reportComment(reason: String) {
+        val commentId = _uiState.value.reportingCommentId ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isReporting = true) }
+            try {
+                reportRepository.sendReport(
+                    entityId = commentId.toString(),
+                    entityType = ReportEntityType.Comment,
+                    reason = reason
+                )
+                _uiState.update {
+                    it.copy(
+                        isReporting = false,
+                        showReportCommentDialog = false,
+                        reportingCommentId = null,
+                        reportingCommentPosterName = "",
+                        reportSuccess = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isReporting = false,
+                        error = "Không thể gửi báo cáo: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearReportSuccess() {
+        _uiState.update { it.copy(reportSuccess = false) }
+    }
+
     companion object {
         fun provideFactory(
             userProfileRepository: UserProfileRepository,
             productRepository: ProductRepository,
             favoriteRepository: FavoriteRepository,
             userRepository: UserRepository,
+            reportRepository: ReportRepository,
             userName: String
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -276,6 +382,7 @@ class UserProfileViewModel(
                     productRepository,
                     favoriteRepository,
                     userRepository,
+                    reportRepository,
                     userName
                 ) as T
             }

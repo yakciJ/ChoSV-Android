@@ -10,6 +10,7 @@ import com.chosv.chosv_android.data.network.ChatHubService
 import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ImageApiService
 import com.chosv.chosv_android.data.network.ProductApiService
+import com.chosv.chosv_android.data.network.ReportApiService
 import com.chosv.chosv_android.data.network.UserApiService
 import com.chosv.chosv_android.data.repository.AuthRepository
 import com.chosv.chosv_android.data.repository.AuthRepositoryImpl
@@ -23,6 +24,8 @@ import com.chosv.chosv_android.data.repository.ImageRepository
 import com.chosv.chosv_android.data.repository.ImageRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
+import com.chosv.chosv_android.data.repository.ReportRepository
+import com.chosv.chosv_android.data.repository.ReportRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserProfileRepository
 import com.chosv.chosv_android.data.repository.UserProfileRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserRepository
@@ -54,6 +57,7 @@ interface AppContainer {
     val categoryRepository: CategoryRepository
     val chatRepository: ChatRepository
     val chatHubService: ChatHubService
+    val reportRepository: ReportRepository
 }
 
 class DefaultAppContainer(
@@ -186,6 +190,14 @@ class DefaultAppContainer(
 
     override val chatHubService: ChatHubService by lazy {
         ChatHubService(tokenPreferences)
+    }
+
+    private val reportApiService: ReportApiService by lazy {
+        retrofit.create(ReportApiService::class.java)
+    }
+
+    override val reportRepository: ReportRepository by lazy {
+        ReportRepositoryImpl(reportApiService)
     }
 
 }
