@@ -9,6 +9,8 @@ import com.chosv.chosv_android.data.network.ChatApiService
 import com.chosv.chosv_android.data.network.ChatHubService
 import com.chosv.chosv_android.data.network.FavoriteApiService
 import com.chosv.chosv_android.data.network.ImageApiService
+import com.chosv.chosv_android.data.network.NotificationApiService
+import com.chosv.chosv_android.data.network.NotificationHubService
 import com.chosv.chosv_android.data.network.ProductApiService
 import com.chosv.chosv_android.data.network.ReportApiService
 import com.chosv.chosv_android.data.network.UserApiService
@@ -22,6 +24,8 @@ import com.chosv.chosv_android.data.repository.FavoriteRepository
 import com.chosv.chosv_android.data.repository.FavoriteRepositoryImpl
 import com.chosv.chosv_android.data.repository.ImageRepository
 import com.chosv.chosv_android.data.repository.ImageRepositoryImpl
+import com.chosv.chosv_android.data.repository.NotificationRepository
+import com.chosv.chosv_android.data.repository.NotificationRepositoryImpl
 import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
 import com.chosv.chosv_android.data.repository.ReportRepository
@@ -58,6 +62,8 @@ interface AppContainer {
     val chatRepository: ChatRepository
     val chatHubService: ChatHubService
     val reportRepository: ReportRepository
+    val notificationRepository: NotificationRepository
+    val notificationHubService: NotificationHubService
 }
 
 class DefaultAppContainer(
@@ -198,6 +204,18 @@ class DefaultAppContainer(
 
     override val reportRepository: ReportRepository by lazy {
         ReportRepositoryImpl(reportApiService)
+    }
+
+    private val notificationApiService: NotificationApiService by lazy {
+        retrofit.create(NotificationApiService::class.java)
+    }
+
+    override val notificationRepository: NotificationRepository by lazy {
+        NotificationRepositoryImpl(notificationApiService)
+    }
+
+    override val notificationHubService: NotificationHubService by lazy {
+        NotificationHubService(tokenPreferences)
     }
 
 }
