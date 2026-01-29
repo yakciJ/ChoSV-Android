@@ -43,6 +43,7 @@ data class UserProfile(
     val avatarImage: String? = null,
     val bio: String? = null,
     val address: String? = null,
+    val universityName: String? = null,
     val createdAt: String? = null
 )
 
@@ -51,7 +52,8 @@ data class UpdateProfileRequest(
     val fullName: String,
     val bio: String,
     val address: String,
-    val phoneNumber: String
+    val phoneNumber: String,
+    val universityId: Int = 0
 )
 
 @Serializable

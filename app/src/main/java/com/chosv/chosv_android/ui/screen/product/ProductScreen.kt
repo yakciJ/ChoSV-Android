@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -314,6 +316,9 @@ fun ProductDetailContent(
             }
             if (product.sellerAddress.isNotEmpty()) {
                 InfoRow(icon = Icons.Default.Business, text = product.sellerAddress)
+            }
+            if (!product.sellerUniversity.isNullOrBlank()) {
+                InfoRow(icon = Icons.Default.School, text = product.sellerUniversity)
             }
         }
 

@@ -19,10 +19,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -32,6 +32,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,7 +80,8 @@ fun ProfileScreen(
     val viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.provideFactory(
             userRepository = application.container.userRepository,
-            imageRepository = application.container.imageRepository
+            imageRepository = application.container.imageRepository,
+            universityRepository = application.container.universityRepository
         )
     )
 
@@ -135,7 +141,7 @@ fun ProfileScreen(
                     if (!currentUser?.avatarImage.isNullOrBlank()) {
                         AsyncImage(
                             model = ImageRequest.Builder(context = LocalContext.current)
-                                .data(convertBaseUrl(currentUser?.avatarImage ?: ""))
+                                .data(convertBaseUrl(currentUser.avatarImage ?: ""))
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Avatar",
@@ -206,6 +212,16 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    // University name
+                    if (!currentUser.universityName.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = currentUser.universityName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -305,7 +321,7 @@ fun ProfileScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ExitToApp,
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
@@ -348,11 +364,15 @@ fun ProfileScreen(
             bio = uiState.editBio,
             address = uiState.editAddress,
             phoneNumber = uiState.editPhoneNumber,
+            universities = uiState.universities,
+            selectedUniversityId = uiState.selectedUniversityId,
+            isLoadingUniversities = uiState.isLoadingUniversities,
             isLoading = uiState.isUpdatingProfile,
             onFullNameChange = viewModel::onEditFullNameChange,
             onBioChange = viewModel::onEditBioChange,
             onAddressChange = viewModel::onEditAddressChange,
             onPhoneNumberChange = viewModel::onEditPhoneNumberChange,
+            onUniversitySelected = viewModel::onUniversitySelected,
             onConfirm = viewModel::updateProfile,
             onDismiss = viewModel::hideEditProfileDialog
         )
@@ -407,17 +427,22 @@ fun ProfileScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileDialog(
     fullName: String,
     bio: String,
     address: String,
     phoneNumber: String,
+    universities: List<com.chosv.chosv_android.data.model.University>,
+    selectedUniversityId: Int?,
+    isLoadingUniversities: Boolean,
     isLoading: Boolean,
     onFullNameChange: (String) -> Unit,
     onBioChange: (String) -> Unit,
     onAddressChange: (String) -> Unit,
     onPhoneNumberChange: (String) -> Unit,
+    onUniversitySelected: (Int?) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -461,6 +486,55 @@ fun EditProfileDialog(
                     singleLine = true,
                     shape = RoundedCornerShape(8.dp)
                 )
+
+                // University dropdown
+                var universityDropdownExpanded by remember { mutableStateOf(false) }
+                val selectedUniversity = universities.find { it.universityId == selectedUniversityId }
+
+                ExposedDropdownMenuBox(
+                    expanded = universityDropdownExpanded,
+                    onExpandedChange = { universityDropdownExpanded = !universityDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = selectedUniversity?.universityName ?: "Chọn trường đại học",
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Trường đại học") },
+                        trailingIcon = {
+                            if (isLoadingUniversities) {
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                            } else {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = universityDropdownExpanded)
+                            }
+                        },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    DropdownMenu(
+                        expanded = universityDropdownExpanded && !isLoadingUniversities,
+                        onDismissRequest = { universityDropdownExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Không chọn") },
+                            onClick = {
+                                onUniversitySelected(null)
+                                universityDropdownExpanded = false
+                            }
+                        )
+                        universities.forEach { university ->
+                            DropdownMenuItem(
+                                text = { Text(university.universityName) },
+                                onClick = {
+                                    onUniversitySelected(university.universityId)
+                                    universityDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
         },
         confirmButton = {

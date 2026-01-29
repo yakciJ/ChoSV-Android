@@ -42,4 +42,11 @@ interface AuthApiService {
     // API quên mật khẩu
     @POST("api/User/forgotPassword")
     suspend fun forgotPassword(@Query("email") email: String): Response<MessageResponse>
+
+    // API lấy danh sách trường đại học
+    @GET("api/University")
+    suspend fun getUniversities(
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 100
+    ): Response<UniversityResponse>
 }

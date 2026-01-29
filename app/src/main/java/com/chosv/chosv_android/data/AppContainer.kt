@@ -30,6 +30,8 @@ import com.chosv.chosv_android.data.repository.ProductRepository
 import com.chosv.chosv_android.data.repository.ProductRepositoryImpl
 import com.chosv.chosv_android.data.repository.ReportRepository
 import com.chosv.chosv_android.data.repository.ReportRepositoryImpl
+import com.chosv.chosv_android.data.repository.UniversityRepository
+import com.chosv.chosv_android.data.repository.UniversityRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserProfileRepository
 import com.chosv.chosv_android.data.repository.UserProfileRepositoryImpl
 import com.chosv.chosv_android.data.repository.UserRepository
@@ -54,6 +56,7 @@ interface AppContainer {
     val tokenPreferences: TokenPreferences
     val authRepository: AuthRepository
     val userRepository: UserRepository
+    val universityRepository: UniversityRepository
     val userProfileRepository: UserProfileRepository
     val productRepository: ProductRepository
     val favoriteRepository: FavoriteRepository
@@ -144,6 +147,10 @@ class DefaultAppContainer(
 
     override val userRepository: UserRepository by lazy {
         UserRepositoryImpl(authApiService, tokenPreferences)
+    }
+
+    override val universityRepository: UniversityRepository by lazy {
+        UniversityRepositoryImpl(authApiService)
     }
 
     private val userApiService: UserApiService by lazy {

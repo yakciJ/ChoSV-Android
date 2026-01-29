@@ -67,6 +67,7 @@ data class ProductDetail(
     val sellerFullName: String,
     val sellerAvatarImage: String? = null, // Có thể null
     val sellerEmail: String,
+    val sellerUniversity: String? = null,
     val sellerJoinedDate: String,
     val productImages: List<String>,
     val favoriteCount: Int,

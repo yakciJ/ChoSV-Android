@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -417,6 +418,14 @@ private fun UserInfoSection(userInfo: ChatUserInfo) {
                     InfoRow(
                         icon = Icons.Default.LocationOn,
                         text = userInfo.address
+                    )
+                }
+
+                // University
+                if (!userInfo.universityName.isNullOrBlank()) {
+                    InfoRow(
+                        icon = Icons.Default.School,
+                        text = userInfo.universityName
                     )
                 }
             }

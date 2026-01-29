@@ -27,6 +27,9 @@ data class ProfileUiState(
     val editBio: String = "",
     val editAddress: String = "",
     val editPhoneNumber: String = "",
+    val selectedUniversityId: Int? = null,
+    val universities: List<com.chosv.chosv_android.data.model.University> = emptyList(),
+    val isLoadingUniversities: Boolean = false,
     val isUpdatingProfile: Boolean = false,
 
     // Change password dialog
@@ -47,7 +50,8 @@ data class ProfileUiState(
 
 class ProfileViewModel(
     private val userRepository: UserRepository,
-    private val imageRepository: ImageRepository
+    private val imageRepository: ImageRepository,
+    private val universityRepository: com.chosv.chosv_android.data.repository.UniversityRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -74,9 +78,11 @@ class ProfileViewModel(
                 editFullName = user?.fullName ?: "",
                 editBio = user?.bio ?: "",
                 editAddress = user?.address ?: "",
-                editPhoneNumber = user?.phoneNumber ?: ""
+                editPhoneNumber = user?.phoneNumber ?: "",
+                selectedUniversityId = null // Will be set after loading universities
             )
         }
+        loadUniversities()
     }
 
     fun hideEditProfileDialog() {
@@ -99,6 +105,29 @@ class ProfileViewModel(
         _uiState.update { it.copy(editPhoneNumber = value) }
     }
 
+    fun onUniversitySelected(universityId: Int?) {
+        _uiState.update { it.copy(selectedUniversityId = universityId) }
+    }
+
+    private fun loadUniversities() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingUniversities = true) }
+            universityRepository.getUniversities().fold(
+                onSuccess = { universities ->
+                    _uiState.update {
+                        it.copy(
+                            universities = universities,
+                            isLoadingUniversities = false
+                        )
+                    }
+                },
+                onFailure = {
+                    _uiState.update { it.copy(isLoadingUniversities = false) }
+                }
+            )
+        }
+    }
+
     fun updateProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isUpdatingProfile = true, error = null) }
@@ -106,7 +135,8 @@ class ProfileViewModel(
                 fullName = _uiState.value.editFullName,
                 bio = _uiState.value.editBio,
                 address = _uiState.value.editAddress,
-                phoneNumber = _uiState.value.editPhoneNumber
+                phoneNumber = _uiState.value.editPhoneNumber,
+                universityId = _uiState.value.selectedUniversityId ?: 0
             )
             userRepository.updateProfile(request).fold(
                 onSuccess = { message ->
@@ -272,11 +302,12 @@ class ProfileViewModel(
     companion object {
         fun provideFactory(
             userRepository: UserRepository,
-            imageRepository: ImageRepository
+            imageRepository: ImageRepository,
+            universityRepository: com.chosv.chosv_android.data.repository.UniversityRepository
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ProfileViewModel(userRepository, imageRepository) as T
+                return ProfileViewModel(userRepository, imageRepository, universityRepository) as T
             }
         }
     }
